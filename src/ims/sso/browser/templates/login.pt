@@ -1,0 +1,23 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="context/@@main_template/macros/master"
+      xml:lang="en"
+      i18n:domain="plone"
+>
+
+  <head>
+    <metal:noborder fill-slot="top_slot"
+                    tal:define="
+                      dummy python:request.set('disable_border',1);
+                    "
+    />
+  </head>
+
+  <body>
+    <metal:main fill-slot="main">
+        Direct site login is not available, please login with your IdP.
+    </metal:main>
+  </body>
+</html>

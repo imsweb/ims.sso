@@ -1,0 +1,634 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      metal:use-macro="context/prefs_main_template/macros/master"
+      xml:lang="en"
+      i18n:domain="plone"
+>
+
+  <body>
+
+    <metal:main fill-slot="prefs_configlet_main"
+                tal:define="
+                  template_id string:@@usergroup-userprefs;
+                  showAll python:request.get('showAll', '') and not view.newSearch and 'y';
+                  portal_roles view/portal_roles;
+                  portal_url context/portal_url;
+                  can_change_roles view/can_change_roles;
+                "
+    >
+
+      <article id="content">
+        <div class="d-flex justify-content-center">
+          <div class="spinner-border"
+               id="usersoverview-spinner"
+               role="status"
+          >
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+
+        <header>
+
+          <h1 class="documentFirstHeading"
+              i18n:translate=""
+          >Users</h1>
+
+          <div metal:use-macro="context/global_statusmessage/macros/portal_message">
+                Portal status message
+          </div>
+
+        </header>
+
+        <div id="content-core"
+             tal:define="
+               findAll python:'form.button.FindAll' in request.keys();
+               portal_users view/searchResults;
+               many_users view/many_users;
+             "
+        >
+
+          <div tal:condition="can_change_roles"
+               i18n:translate="user_roles_note"
+          >
+            <p>
+                    Note that roles set here apply directly to a user.
+                    The symbol
+              <span i18n:name="image_link_icon"><tal:icon tal:replace="structure python:icons.tag('people', tag_alt='Inherited from Group')" /></span>
+                    indicates a role inherited from membership in a group.
+            </p>
+          </div>
+          <div class="autotabs">
+            <p class="alert alert-warn"
+               role="status"
+               tal:condition="view/show_users_listing_warning"
+            >
+              <strong i18n:translate="">Note</strong>
+              <span i18n:translate="description_pas_users_listing">
+                        Some or all of your PAS user source plugins do not allow listing of users, so you may not see
+                        the users defined by those plugins unless doing a specific search.
+              </span>
+            </p>
+
+            <p tal:condition="view/uses_expiry"
+               i18n:translate="description_expiry_warning"
+            >
+              <b>New Accounts: If a user does not complete their registration and
+                <a href="https://portals.imsweb.com/help/setup-site-administration/users-and-groups/linking-login-service-account-to-the-portal"
+                   target="_blank"
+                >
+                  link their account</a>
+                 to the portal,
+                the account will be removed after ${view/expiry_days} days.</b>
+                    You can reset the ${view/expiry_days} day expiration using the
+              <a href="https://portals.imsweb.com/help/setup-site-administration/users-and-groups/send-new-registration-to-a-user"
+                 target="_blank"
+              >
+                Re-Register checkbox</a>. A new registration
+                    email will be sent to the user with instructions to link their account to the portal.
+            </p>
+
+            <p>
+              <b>Inactive/Disabled Accounts:</b>
+               If a user has not logged in for more than 90 days, their account
+                    status will be set to inactive. Inactive users will not be able to access the portal except to log
+                    in and request a link to reactivate their account. An account will be disabled if the user has not
+                    logged in for 730 days. Refer to
+              <a href="https://portals.imsweb.com/help/setup-site-administration/users-and-groups/user-management"
+                 target="_blank"
+              >User
+                Management</a>
+                    in the help website for more information.
+            </p>
+
+            <form class="enableAutoFocus"
+                  action="${portal_url}/${template_id}"
+                  method="post"
+                  name="users_search"
+            >
+              <input name="form.submitted"
+                     type="hidden"
+                     value="1"
+              />
+
+              <div class="container mb-3 px-0">
+                <div class="row gx-5 my-4">
+                  <div class="col">
+                    <div class="input-group">
+                      <label class="input-group-text"
+                             id="quickSearchLabel"
+                             for="quickSearch"
+                             i18n:translate="label_user_search"
+                      >User Search</label>
+                      <input class="form-control quickSearch border-end-0"
+                             id="quickSearch"
+                             name="searchstring"
+                             type="text"
+                             value="${view/searchString}"
+                      />
+                      <div class="d-flex pb-1 pt-1 border-top border-bottom border-1">
+                        <tal:opts repeat="opt view/active_search_options">
+                          <div class="badge bg-light text-dark me-1 border">
+                            <div class="form-check pt-1"
+                                 id="status"
+                            >
+                              <input class="form-check-input"
+                                     id="search${opt/title}Users"
+                                     checked
+                                     name="${opt/value}"
+                                     type="checkbox"
+                                     value="${opt/value}"
+                                     tal:condition="opt/selectActive"
+                              />
+                              <input class="form-check-input"
+                                     id="search${opt/title}Users"
+                                     checked
+                                     name="${opt/value}"
+                                     type="checkbox"
+                                     value="${opt/value}"
+                                     tal:condition="opt/selectInactive"
+                              />
+                              <input class="form-check-input"
+                                     id="search${opt/title}Users"
+                                     checked
+                                     name="${opt/value}"
+                                     type="checkbox"
+                                     value="${opt/value}"
+                                     tal:condition="opt/selectDisabled"
+                              />
+                              <input class="form-check-input"
+                                     id="search${opt/title}Users"
+                                     name="${opt/value}"
+                                     type="checkbox"
+                                     value="${opt/value}"
+                                     tal:condition="python:not opt['selectActive']
+                                                            and not opt['selectInactive']
+                                                            and not opt['selectDisabled']"
+                              />
+                              <input class="form-check-input"
+                                     id="search${opt/title}Users"
+                                     checked
+                                     name="${opt/value}"
+                                     type="checkbox"
+                                     value="${opt/value}"
+                                     tal:condition="python: opt['noSearch'] and opt['value'] == 'active'"
+                              />
+                              <input class="form-check-input"
+                                     id="search${opt/title}Users"
+                                     checked
+                                     name="${opt/value}"
+                                     type="checkbox"
+                                     value="${opt/value}"
+                                     tal:condition="opt/showAll"
+                              />
+                              <label class="form-check-label"
+                                     for="search${opt/title}Users"
+                              >${opt/title}</label>
+                            </div>
+                          </div>
+                        </tal:opts>
+                      </div>
+                      <button class="searchButton btn btn-primary"
+                              name="form.button.Search"
+                              type="submit"
+                              value="Search"
+                              i18n:attributes="value label_search;"
+                              i18n:translate=""
+                      >
+                                        Search
+                      </button>
+                      <button class="searchButton btn btn-secondary"
+                              name="form.button.FindAll"
+                              type="submit"
+                              value="Show all"
+                              tal:condition="not:many_users"
+                              i18n:attributes="value label_showall;"
+                              i18n:translate="label_showall"
+                      >
+                                        Show All
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="row my-2">
+                  <div class="col">
+                    <div class="d-flex">
+                      <div>
+                        <a class="me-3 btn btn-primary"
+                           id="add-user"
+                           href="${portal_url}/@@new-user"
+                           data-pat-plone-modal='{
+                                                        "actionOptions": {
+                                                          "redirectOnResponse": true,
+                                                          "redirectToUrl": "${portal_url}/@@usergroup-userprefs"
+                                                        }
+                                                      }'
+                           i18n:translate="label_add_new_user"
+                        >
+                          <tal:icon tal:replace="structure python:icons.tag('plus-lg', tag_alt='Add user')" />
+
+                                            Add New User
+                        </a>
+
+                      </div>
+                      <div>
+                        <a class="me-3 btn btn-secondary"
+                           id="import-users"
+                           href="${portal_url}/@@import_users"
+                           i18n:translate="label_import_users"
+                        >
+                          <tal:icon tal:replace="structure python:icons.tag('upload', tag_alt='Import users')" />
+
+                                            Import Multiple Users
+                        </a>
+
+                      </div>
+                      <div class="ms-auto px-2">
+                        <button class="btn btn-secondary btn-clipboard"
+                                onclick="return false"
+                                title="copied to clipboard"
+                                data-bs-placement="bottom"
+                                data-bs-toggle="tooltip"
+                                data-bs-trigger="click"
+                                data-clipboard-text="${view/emails}"
+                        >
+                          <tal:icon tal:replace="structure python:icons.tag('clipboard', tag_alt='Copy to clipboard')" />
+                                            Copy Email Addresses
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </form>
+            <form class="enableAutoFocus pat-formunloadalert"
+                  id="users_manage"
+                  action="${portal_url}/${template_id}"
+                  method="post"
+                  name="users_manage"
+            >
+              <input name="form.submitted"
+                     type="hidden"
+                     value="1"
+              />
+              <table class="table table-responsive table-bordered table-hover text-center usergroup-table pat-datatables"
+                     id="users_manage_table"
+                     data-pat-datatables="${view/datatables}"
+              >
+                <thead tal:condition="portal_users">
+                  <tr>
+                    <th class="text-start usergroup-table-name align-top"
+                        i18n:translate="listingheader_user_name"
+                    >
+                                Name
+                    </th>
+                    <th class="usergroup-table-account align-top">Account info
+                      <a class="text-primary"
+                         role="button"
+                         tabindex="0"
+                         title="Username/ID (Login Service)"
+                         data-bs-content="Username or ID and Login Service Provider for the account linked
+                                       to the portal. See
+                                       Linking Login Service help page for more info."
+                         data-bs-html="true"
+                         data-bs-toggle="popover"
+                         data-bs-trigger="focus"
+                      >
+                        <tal:icon tal:replace="structure python:icons.tag('info-circle-fill', tag_alt='Edit user account')" />
+                      </a>
+                    </th>
+                    <th class="usergroup-table-email align-top">Email</th>
+                    <th class="usergroup-table-email-${portal_role} rotate"
+                        tal:condition="can_change_roles"
+                        tal:repeat="portal_role portal_roles"
+                    >
+                      <div i18n:translate="">${portal_role}</div>
+                    </th>
+                    <th class="usergroup-table-login align-top">Last Login</th>
+                    <th class="${python: 'rotate' if can_change_roles else 'align-top'} usergroup-table-reset table-warning"
+                        i18n:translate="listingheader_reset_password"
+                    >
+                      <div>
+                                    Re-register
+                        <a class="text-primary"
+                           role="button"
+                           tabindex="0"
+                           title="Send New Registration"
+                           data-bs-content="Send another registration email to the user’s current email, or edit the email address and send. See
+                                            Send New Registration Email."
+                           data-bs-html="true"
+                           data-bs-toggle="popover"
+                           data-bs-trigger="focus"
+                        >
+                          <tal:icon tal:replace="structure python:icons.tag('info-circle-fill', tag_alt='Edit user account')" />
+                        </a>
+                      </div>
+                    </th>
+                    <th class="table-warning usergroup-table-status align-top">
+                                Status
+                      <a class="text-primary"
+                         role="button"
+                         tabindex="0"
+                         title="User Status"
+                         data-bs-content="Inactive/disabled accounts will not be able to log in to the portal. Reactivating accounts restores the original permissions to the user. Accounts for Super Users cannot be deleted or deactivated."
+                         data-bs-toggle="popover"
+                         data-bs-trigger="focus"
+                      >
+                        <tal:icon tal:replace="structure python:icons.tag('info-circle-fill', tag_alt='Edit user account')" />
+                      </a>
+                    </th>
+                    <th class="${python: 'rotate' if can_change_roles else 'align-top'} usergroup-table-delete table-danger">
+                      <div>
+                                    Delete
+                        <a class="text-primary"
+                           role="button"
+                           tabindex="0"
+                           title="User Status"
+                           data-bs-content="Deleted accounts will be removed from the portal completely. If the user needs to be re-added, they will be treated as a new user."
+                           data-bs-toggle="popover"
+                           data-bs-trigger="focus"
+                        >
+                          <tal:icon tal:replace="structure python:icons.tag('info-circle-fill', tag_alt='Edit user account')" />
+                        </a>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tal:loop repeat="user portal_users">
+                    <tr tal:define="
+                          userid user/userid;
+                          linked user/linked;
+                          userquery python:view.makeQuery(userid=userid);
+                          rowopacity python:'opacity-50' if user['active']!=view.active_status() else '';
+                        ">
+
+                      <td class="text-start ${rowopacity}"
+                          data-sort="${user/sort_name}"
+                      >
+                        <a href="${portal_url}/@@user-information?${userquery}"
+                           title="${userid}"
+                        >
+                                            ${python:user['fullname'] or userid}
+                        </a>
+                        <span class="badge text-bg-warning text-black"
+                              tal:condition="user/service"
+                        >service</span>
+                        <input name="users.id:records"
+                               type="hidden"
+                               value="${userid}"
+                        />
+                      </td>
+                      <td class="${rowopacity} text-start">
+                        <span class="not-linked"
+                              tal:condition="not:linked"
+                        >
+                                (This account is not linked)
+                          <span tal:condition="user/expiry">${user/expiry}</span>
+                        </span>
+                        <span tal:condition="python:linked and user['login']">
+                                        ${user/login} (${user/idp})
+                        </span>
+                        <span tal:condition="python:linked and not user['login']">
+                                        (${user/idp})
+                        </span>
+                      </td>
+                      <td class="${rowopacity} text-start">
+                        <a id="user_mailto_${userid}"
+                           href="mailto:${user/email}"
+                           tal:condition="user/email"
+                        >
+                                            ${user/email}
+                        </a>
+                        <small class="d-none"
+                               id="users_reset_label_${userid}"
+                        >Registration will go to this
+                          email</small>
+                        <input class="form-control d-none"
+                               id="users_reset_email_${userid}"
+                               aria-label="Change email"
+                               name="users.reset_email:records"
+                               type="text"
+                               value="${user/email}"
+                        />
+                      </td>
+                      <td class="listingCheckbox"
+                          tal:condition="can_change_roles"
+                          tal:repeat="portal_role portal_roles"
+                      >
+                        <tal:block tal:define="
+                                     inherited python:user['roles'][portal_role]['inherited'];
+                                     explicit python:user['roles'][portal_role]['explicit'];
+                                     enabled python:user['roles'][portal_role]['canAssign'];
+                                   ">
+                          <input class="noborder"
+                                 checked="${python:'checked' if explicit else nothing}"
+                                 disabled="${python: default if enabled else 'disabled'}"
+                                 name="users.roles:list:records"
+                                 type="checkbox"
+                                 value="${portal_role}"
+                                 tal:condition="not:inherited"
+                          />
+                          <input name="users.roles:list:records"
+                                 type="hidden"
+                                 value="${portal_role}"
+                                 tal:condition="python:inherited and portal_role=='Manager'"
+                          />
+                          <tal:icon tal:condition="inherited"
+                                    tal:replace="structure python:icons.tag('people', tag_alt='Inherited from Group')"
+                          />
+
+                        </tal:block>
+
+                      </td>
+                      <td class="text-start ${rowopacity}"
+                          data-sort="${user/login_time_sort}"
+                      >
+                                ${user/login_time}
+                        <div class="text-muted"
+                             tal:condition="user/activation_date"
+                        >
+                                        (reactivated ${user/activation_date})
+                        </div>
+                      </td>
+
+                      <td class="listingCheckbox table-warning">
+                        <input class="noborder users_reset_email_toggle"
+                               disabled="${python:'disabled' if not user['can_deactivate'] or view.not_active(user['active']) else default }"
+                               name="users.resetpassword:records"
+                               type="checkbox"
+                               value="${userid}"
+                        />
+                      </td>
+
+                      <td class="listingCheckbox table-warning">
+                        <select class="form-select"
+                                aria-label="Disable"
+                                disabled="${python:'disabled' if not user['can_deactivate'] else default}"
+                                name="users.active:records"
+                                type="checkbox"
+                        >
+                          <tal:opt repeat="opt view/active_options">
+                            <option selected
+                                    value="${opt/value}"
+                                    tal:condition="python:user['active'] == opt.value"
+                            >
+                                                    ${opt/title}
+                            </option>
+                            <option value="${opt/value}"
+                                    tal:condition="python:user['active'] != opt.value and opt.value != 'inactive'"
+                            >
+                                                    ${opt/title}
+                            </option>
+                          </tal:opt>
+                        </select></td>
+
+                      <td class="listingCheckbox table-danger">
+                        <input class="noborder notify"
+                               disabled="${python:default if user['can_delete'] else 'disabled'}"
+                               name="delete:list"
+                               type="checkbox"
+                               value="${userid}"
+                        />
+                      </td>
+                    </tr>
+                  </tal:loop>
+                  <tr tal:condition="not:portal_users">
+                    <td style="text-align:center;"
+                        tal:condition="view/searchString"
+                        i18n:translate="text_nomatches"
+                    >No matches
+                    </td>
+                    <tal:block tal:condition="not:view/searchString">
+                      <td class="discreet"
+                          style="text-align:center; font-size: 100%;"
+                          tal:condition="many_users"
+                          i18n:translate="text_no_user_searchstring"
+                      >
+                                    Enter a username to search for
+                      </td>
+                      <td class="discreet"
+                          style="text-align:center; font-size: 100%;"
+                          tal:condition="not:many_users"
+                          i18n:translate="text_no_user_searchstring_largesite"
+                      >
+                                    Enter a username to search for, or click 'Show All'
+                      </td>
+                    </tal:block>
+                  </tr>
+                </tbody>
+              </table>
+
+              <input name="searchstring"
+                     type="hidden"
+                     value="${view/searchString}"
+              />
+              <tal:opts repeat="opt view/active_search_options">
+                <div class="d-none">
+                  <div class="form-check pt-1"
+                       id="status"
+                  >
+                    <input class="form-check-input"
+                           id="search${opt/title}Users"
+                           checked
+                           name="${opt/value}"
+                           type="checkbox"
+                           value="${opt/value}"
+                           tal:condition="opt/selectActive"
+                    />
+                    <input class="form-check-input"
+                           id="search${opt/title}Users"
+                           checked
+                           name="${opt/value}"
+                           type="checkbox"
+                           value="${opt/value}"
+                           tal:condition="opt/selectInactive"
+                    />
+                    <input class="form-check-input"
+                           id="search${opt/title}Users"
+                           checked
+                           name="${opt/value}"
+                           type="checkbox"
+                           value="${opt/value}"
+                           tal:condition="opt/selectDisabled"
+                    />
+                    <input class="form-check-input"
+                           id="search${opt/title}Users"
+                           name="${opt/value}"
+                           type="checkbox"
+                           value="${opt/value}"
+                           tal:condition="python:not opt['selectActive']
+                                        and not opt['selectInactive']
+                                        and not opt['selectDisabled']"
+                    />
+                    <input class="form-check-input"
+                           id="search${opt/title}Users"
+                           checked
+                           name="${opt/value}"
+                           type="checkbox"
+                           value="${opt/value}"
+                           tal:condition="python: opt['noSearch'] and opt['value'] == 'active'"
+                    />
+                    <input class="form-check-input"
+                           id="search${opt/title}Users"
+                           checked
+                           name="${opt/value}"
+                           type="checkbox"
+                           value="${opt/value}"
+                           tal:condition="opt/showAll"
+                    />
+                    <label class="form-check-label"
+                           for="search${opt/title}Users"
+                    >${opt/title}</label>
+                  </div>
+                </div>
+              </tal:opts>
+
+              <div class="form-inline form-group"
+                   id="usersoverview-submit"
+                   tal:condition="portal_users"
+              >
+
+                <div class="btn-group">
+                  <button class="btn btn-primary"
+                          name="form.button.Modify"
+                          type="submit"
+                          value="Save"
+                          i18n:translate="label_apply_changes"
+                  >Apply changes
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-inline form-group bg-secondary d-none"
+                   id="usersoverview-submit-sticky"
+                   tal:condition="portal_users"
+              >
+
+                <div class="btn-group">
+                  <button class="btn btn-primary"
+                          name="form.button.Modify"
+                          type="submit"
+                          value="Save"
+                          i18n:translate="label_apply_changes"
+                  >Apply changes
+                  </button>
+                </div>
+              </div>
+
+              <input tal:replace="structure context/@@authenticator/authenticator" />
+
+            </form>
+          </div>
+        </div>
+
+      </article>
+
+    </metal:main>
+
+  </body>
+</html>

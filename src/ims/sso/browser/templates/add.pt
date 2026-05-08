@@ -1,0 +1,46 @@
+<div tal:replace="structure context/manage_page_header"></div>
+<div tal:replace="structure context/manage_tabs"></div>
+
+<h2>Add ims.sso plugin</h2>
+
+<p class="form-help">
+    Install ims.sso plugin
+</p>
+
+<form action="manage_addImsSso"
+      method="POST"
+>
+  <table>
+    <tr>
+      <td class="form-label">
+                ID
+      </td>
+      <td>
+        <input name="id"
+               type="text"
+        />
+      </td>
+    </tr>
+    <tr>
+      <td class="form-label">
+                Title
+      </td>
+      <td>
+        <input name="title"
+               type="text"
+        />
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <div class="form-element">
+          <input type="submit"
+                 value="Add"
+          />
+        </div>
+      </td>
+    </tr>
+  </table>
+</form>
+
+<div tal:replace="structure context/manage_page_footer"></div>

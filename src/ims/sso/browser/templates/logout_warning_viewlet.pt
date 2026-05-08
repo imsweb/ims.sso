@@ -1,0 +1,26 @@
+<div class="ssoLogoutWarning"
+     i18n:domain="plone"
+>
+  <div class="hidden"
+       id="sso-max-session-timeout-warning"
+  >
+    <div class="ssoWarningMessage">
+      <strong>Warning</strong>
+      <p>
+                You are approaching the maximum authentication time allowed by your log in service provider. Please save
+                your work as soon as possible and log out in order to avoid losing any of your work. The amount of time
+                you
+                have remaining before being automatically logged out is listed below. If you need to continue working,
+                you
+                may log back in to extend your session.
+      </p>
+      <p>
+                Time Remaining:
+        <span class="timer"></span>
+      </p>
+      <button class="btn"
+              id="dismiss-sso-warning"
+      >Dismiss</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,57 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      metal:use-macro="context/main_template/macros/master"
+      xml:lang="en"
+      tal:define="
+        icons python:context.restrictedTraverse('@@iconresolver');
+      "
+      i18n:domain="plone"
+>
+
+  <body>
+
+    <metal:header fill-slot="header">
+      <div class="portalMessage alert alert-danger"
+           id="enable_cookies_message"
+      >
+        <tal:icon tal:replace="structure python:icons.tag('plone-statusmessage-info', tag_alt='status', tag_class='statusmessage-icon mb-1 me-2')" />
+        <strong i18n:translate="">
+            Error
+        </strong>
+            Cookies are not enabled. You must enable cookies before you can log in.
+      </div>
+    </metal:header>
+
+    <metal:main fill-slot="main"
+                tal:define="
+                  auth nocall:context/acl_users/credentials_cookie_auth|context/cookie_authentication|nothing;
+                "
+    >
+      <div id="content-core">
+        <div tal:condition="python: not auth"
+             i18n:translate="login_form_disabled"
+        >
+            Since cookie authentication is disabled, cookie-based login is not available.
+        </div>
+        <metal:login define-macro="login"
+                     tal:define="
+                       email_from_address view/email_from_address;
+                     "
+        >
+
+          <h1>Access Denied</h1>
+
+          <p>You are not authorized to access this content. If you believe you are receiving this message in error,
+                contact the
+            <a href="${context/portal_url}/contact-info">Site Administrator</a>.
+          </p>
+
+        </metal:login>
+      </div>
+
+    </metal:main>
+  </body>
+</html>

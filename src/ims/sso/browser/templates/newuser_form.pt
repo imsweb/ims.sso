@@ -1,0 +1,69 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="plone"
+>
+  <head>
+    <metal:block fill-slot="top_slot"
+                 tal:define="
+                   dummy python:request.set('disable_border',1);
+                   disable_column_one python:request.set('disable_plone.leftcolumn',1);
+                   disable_column_two python:request.set('disable_plone.rightcolumn',1);
+                 "
+    />
+  </head>
+
+  <body>
+    <metal:body fill-slot="body">
+
+      <article id="content">
+        <h1 class="documentFirstHeading"
+            tal:content="view/label | nothing"
+        ></h1>
+        <div id="content-core">
+          <metal:block use-macro="context/@@ploneform-macros/titlelessform">
+            <metal:fields fill-slot="formtop">
+              <div class="my-4"
+                   tal:condition="view/confirmation_required"
+              >
+                <div class="alert alert-warning">
+                  <p>One or more users with this email address already exists (${view/confirmation_user}).</p>
+                  <p>Please confirm that you want to create a new user with this email address.</p>
+                </div>
+                <div class="form-check">
+                  <input name="has_check"
+                         type="hidden"
+                         value="1"
+                  />
+                  <input class="form-check-input"
+                         id="allow_match"
+                         name="allow_match"
+                         type="checkbox"
+                         value="1"
+                  />
+                  <label class="form-check-label"
+                         for="allow_match"
+                  >Yes, create a new user with
+                                this email address.
+                    <span class="required"
+                          title="Required"
+                    ></span>
+                  </label>
+                </div>
+                <em class="invalid-feedback"
+                    tal:condition="python:request.get('has_check') and not request.get('allow_match')"
+                >
+                            To create a new user with this email address, acknowledge that this email address is
+                            already used by another user on this portal.
+                </em>
+              </div>
+            </metal:fields>
+          </metal:block>
+        </div>
+      </article>
+
+    </metal:body>
+  </body>
+</html>

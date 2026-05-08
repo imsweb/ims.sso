@@ -1,0 +1,36 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      metal:use-macro="context/main_template/macros/master"
+      xml:lang="en"
+      i18n:domain="plone"
+>
+  <body>
+
+    <metal:content-core fill-slot="content">
+      <div id="content">
+        <h1>Mass Relink Form</h1>
+        <tal:dup condition="view/duplicates">
+          The form cannot be submitted because there are duplicates:<br />
+          <ul class="listing">
+            <tal:dup repeat="dup view/duplicates">
+              <li tal:content="dup"></li>
+            </tal:dup>
+          </ul>
+        </tal:dup>
+        <tal:nodup condition="not:view/duplicates">
+          <p>No duplicates found.</p>
+          <h2>Users to Be Emailed</h2>
+          <ul>
+            <tal:item repeat="user view/unlinked_user_data">
+              <li tal:content="string:${user/email} (${user/title_or_id})"></li>
+            </tal:item>
+          </ul>
+          <metal:block use-macro="context/@@ploneform-macros/titlelessform" />
+        </tal:nodup>
+      </div>
+    </metal:content-core>
+  </body>
+</html>

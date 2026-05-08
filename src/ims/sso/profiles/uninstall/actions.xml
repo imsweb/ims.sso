@@ -1,0 +1,7 @@
+﻿<?xml version="1.0"?>
+<object name="portal_actions" meta_type="Plone Actions Tool">
+    <action-provider name="portal_actions"/>
+    <object name="site_reports" meta_type="CMF Action Category">
+        <object name="user_expiry" remove="true"/>
+    </object>
+</object>

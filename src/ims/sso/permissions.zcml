@@ -1,0 +1,45 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="ims.sso"
+    >
+
+  <permission
+      id="ims.sso.ManageControlPanel"
+      title="ims.sso: manage control panel"
+      />
+
+  <permission
+      id="ims.sso.AuthorizedView"
+      title="ims.sso: authorized view"
+      />
+
+  <permission
+      id="ims.sso.MassRelink"
+      title="ims.sso: mass relink"
+      />
+
+  <permission
+      id="ims.sso.CanChangeSettings"
+      title="ims.sso: can change settings"
+      />
+
+  <permission
+      id="ims.sso.BasicSettings"
+      title="ims.sso: basic settings"
+      />
+
+  <permission
+      id="ims.sso.AdvancedSettings"
+      title="ims.sso: advanced settings"
+      />
+
+  <permission
+      id="ims.sso.CanChangeRoles"
+      title="ims.sso: can change roles"
+      />
+
+  <permission
+      id="ims.sso.Deactivate"
+      title="ims.sso: deactivate"
+      />
+</configure>

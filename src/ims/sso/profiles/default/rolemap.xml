@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rolemap>
+  <permissions>
+    <permission acquire="True"
+                name="ims.sso: manage control panel"
+    >
+      <role name="Manager" />
+    </permission>
+    <permission acquire="True"
+                name="ims.sso: authorized view"
+    >
+      <role name="Authenticated" />
+    </permission>
+    <permission acquire="True"
+                name="ims.sso: mass relink"
+    >
+      <role name="Manager" />
+    </permission>
+    <permission acquire="True"
+                name="ims.sso: basic settings"
+    >
+      <role name="Manager" />
+      <role name="Site Administrator" />
+    </permission>
+    <permission acquire="True"
+                name="ims.sso: advanced settings"
+    >
+      <role name="Manager" />
+    </permission>
+    <permission acquire="True"
+                name="ims.sso: can change roles"
+    >
+      <role name="Manager" />
+    </permission>
+    <permission acquire="True"
+                name="ims.sso: deactivate"
+    >
+      <role name="Manager" />
+      <role name="Site Administrator" />
+    </permission>
+  </permissions>
+</rolemap>

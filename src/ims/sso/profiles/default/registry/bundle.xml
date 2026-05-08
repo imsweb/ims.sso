@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<registry>
+  <records interface="Products.CMFPlone.interfaces.IBundleRegistry"
+           prefix="plone.bundles/ims.sso"
+  >
+    <value key="jscompilation">++resource++ims.sso/bundle/ims.sso.min.js</value>
+    <value key="csscompilation">++resource++ims.sso/main.css</value>
+    <value key="depends">plone</value>
+    <value key="load_async">False</value>
+    <value key="load_defer">False</value>
+  </records>
+</registry>

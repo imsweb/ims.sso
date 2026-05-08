@@ -1,0 +1,22 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      lang="en-US"
+      metal:use-macro="here/main_template/macros/master"
+      xml:lang="en-US"
+      i18n:domain="ims.sso"
+>
+  <body>
+
+    <div metal:fill-slot="main">
+      <h1 i18n:translate="heading_linkaccount_failed">Login Service Update Failed</h1>
+
+      <p i18n:translate="message_linkaccount_failed">
+        Your Login Service account is already linked to another portal account.<br />
+        You can still access this portal by going to the
+        <a href="${context/portal_url}">home page</a>
+        but you should inform the site administrator of your duplicate accounts.
+      </p>
+
+    </div>
+
+  </body>
+</html>

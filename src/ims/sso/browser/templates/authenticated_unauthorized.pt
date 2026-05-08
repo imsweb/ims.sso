@@ -1,0 +1,63 @@
+<div class="container"
+     id="authenticated_unauthorized_viewlet"
+     tal:condition="view/show_alert"
+>
+  <div class="alert alert-warning"
+       tal:define="
+         portal context/portal_url/getPortalObject;
+       "
+  >
+    <tal:warning condition="view/show_warning">
+      <strong>Login Warning</strong>
+      <tal:unknown condition="python:view.status() == 'unknown'">
+        <p>There is not an active account with your
+          <b tal:content="view/login_info"></b>
+           credentials
+                    on this portal.
+                    If you received a portal registration email from your site administrator,
+          <strong>be sure you completed Step 2</strong>
+           to link your account to the portal.
+        </p>
+        <p>
+                    If you have linked your account with a different service provider you may
+          <a href="/Shibboleth.sso/PloneLogin?target=${portal/absolute_url}">login with that service
+            provider</a>
+                    instead.
+        </p>
+      </tal:unknown>
+    </tal:warning>
+
+    <tal:disabled condition="view/is_inactive">
+            Your account has been locked due to inactivity for security reasons.
+      <form action="${view/reactivation_url}"
+            method="POST"
+      >
+        <span tal:replace="structure context/@@authenticator/authenticator"></span>
+        <button class="btn btn-primary">
+                    Reactivate my account
+        </button>
+      </form>
+    </tal:disabled>
+    <tal:disabled condition="view/is_disabled">
+            Your account has been disabled. Contact the
+      <a href="${context/absolute_url}/contact-info">site administrator</a>
+       to request reactivation.
+    </tal:disabled>
+  </div>
+</div>
+<div class="container"
+     tal:condition="view/logingov"
+>
+  <div class="alert alert-warning"
+       id="not-logingov-account-message"
+  >
+    <p>Your site account uses a login service other than Login.gov. To access the site, please
+      convert your site account to use Login.gov.</p>
+
+    <a class="btn btn-primary"
+       href="${context/absolute_url}/logingov-convert"
+    >
+            Convert to Login.gov
+    </a>
+  </div>
+</div>

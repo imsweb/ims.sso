@@ -1,0 +1,54 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="ims.sso"
+    >
+  <!-- load new permissions first -->
+  <include file="permissions.zcml" />
+
+  <five:registerPackage
+      package="."
+      initialize=".initialize"
+      />
+
+  <include package=".browser" />
+  <include package=".mailing" />
+  <include file="profiles.zcml" />
+  <include file="upgrades.zcml" />
+
+  <utility
+      factory=".utility.SingleSignonUtility"
+      provides=".interfaces.ISingleSignonUtility"
+      />
+
+  <utility
+      factory=".utility.MailTemplatesUtility"
+      provides="ims.sso.interfaces.IMailTemplatesUtility"
+      />
+
+  <utility
+      factory=".utility.ReactivationUtility"
+      provides=".interfaces.IReactivationUtility"
+      />
+
+  <browser:resourceDirectory
+      name="ims.sso"
+      directory="static"
+      />
+
+
+  <subscriber
+      for=".events.IUserRelinkedEvent"
+      handler=".events.user_relinked"
+      />
+
+  <utility
+      name="ims.sso.mail_idps"
+      component=".interfaces.mail_idps"
+      />
+  <utility
+      name="ims.sso.active_status"
+      component=".interfaces.active_status"
+      />
+</configure>

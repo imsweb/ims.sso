@@ -1,0 +1,32 @@
+{
+    "name": "@ims-plone/sso",
+    "description": "SSO Integration for Plone",
+    "version": "1.0.0",
+    "license": "BSD-3-Clause",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/imsweb/ims.sso"
+    },
+    "devDependencies": {
+        "@patternslib/dev": "^2.5.0",
+        "webpack": "^5.74.0",
+        "webpack-bundle-analyzer": "^4.5.0",
+        "webpack-cli": "^5.0.1",
+        "whybundled": "^2.0.0",
+        "yarn": "^1.22.18"
+    },
+    "jshintConfig": {
+        "esversion": 11
+    },
+    "dependencies": {
+        "@patternslib/patternslib": "*"
+    },
+    "scripts": {
+        "build": "webpack --config webpack.config.js",
+        "start": "webpack serve --config webpack.config.js",
+        "stats": "webpack --config webpack.config.js --json > stats.json"
+    },
+    "main": "webpack.config.js",
+    "keywords": [],
+    "author": ""
+}

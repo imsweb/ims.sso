@@ -1,0 +1,153 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="ims.sso"
+    >
+
+  <browser:page
+      name="sso-settings"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".controlpanel.SsoSettingsControlPanelView"
+      permission="ims.sso.BasicSettings"
+      />
+
+  <browser:page
+      name="usergroup-userprefs"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".usergroups_usersoverview.UsersOverviewControlPanel"
+      template="templates/usergroups_usersoverview.pt"
+      permission="plone.app.controlpanel.UsersAndGroups"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+  <browser:page
+      name="sso-tasks"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".cron.PeriodicTasks"
+      permission="cmf.ManagePortal"
+      />
+
+  <browser:page
+      name="new-user"
+      for="plone.app.layout.navigation.interfaces.INavigationRoot"
+      class=".register.AddUserForm"
+      permission="plone.app.controlpanel.UsersAndGroups"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+  <!-- login/logout -->
+  <browser:page
+      name="sso-logout"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".login.SsoLogout"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="linkaccount"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".login.SsoLinkaccount"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="request_reactivation"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".login.RequestReactivation"
+      attribute="render"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="reactivation"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      template="templates/reactivation.pt"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="reactivate_user"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".login.ReactivateUserAccount"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="get_login_url"
+      for="zope.interface.Interface"
+      class=".login.LoginUrl"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="unauthorized"
+      for="zope.interface.Interface"
+      class=".unauthorized.Unauthorized"
+      template="templates/unauthorized.pt"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="unauthorized_anonymous"
+      for="zope.interface.Interface"
+      class=".unauthorized.Unauthorized"
+      template="templates/unauthorized_anonymous.pt"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="login_condition"
+      for="zope.interface.Interface"
+      class=".login.LoginCondition"
+      permission="zope.Public"
+      />
+  <browser:page
+      name="logout_url"
+      for="zope.interface.Interface"
+      class=".login.LogoutUrl"
+      permission="zope.Public"
+      />
+  <!-- change password -->
+  <browser:page
+      name="change-password"
+      for="plone.app.layout.navigation.interfaces.INavigationRoot"
+      class=".password.ChangePassword"
+      permission="cmf.SetOwnPassword"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+  <browser:page
+      name="mail_password_template"
+      for="*"
+      class="..mailing.notify.MailPassword"
+      permission="zope.Public"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+
+  <browser:page
+      name="require_login"
+      for="*"
+      class=".login.RequireLoginView"
+      permission="zope.Public"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+
+  <browser:viewlet
+      name="authenticated_unauthorized"
+      manager="plone.app.layout.viewlets.interfaces.IAboveContent"
+      class=".viewlets.AuthenticatedUnauthorizedViewlet"
+      permission="zope.Public"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+
+  <browser:page
+      name="relog-success"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      template="templates/relog.pt"
+      permission="zope2.Public"
+      layer="..interfaces.IBrowserLayer"
+      />
+  <browser:page
+      name="login"
+      for="plone.base.interfaces.INavigationRoot"
+      class=".login.ShibbolethLogin"
+      permission="zope.Public"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+</configure>

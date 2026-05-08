@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<registry>
+  <records interface="ims.users.interfaces.IControlPanel"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IResourceRegistry"
+           prefix="plone.resources/ims.users"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IBundleRegistry"
+           prefix="plone.bundles/ims.users"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IResourceRegistry"
+           prefix="plone.resources/jquery-simple-timer"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IResourceRegistry"
+           prefix="plone.resources/ims-timeout-modal"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IResourceRegistry"
+           prefix="plone.resources/jquery-idleTimeout"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IBundleRegistry"
+           prefix="plone.bundles/jquery-store"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IBundleRegistry"
+           prefix="plone.bundles/timeout"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IResourceRegistry"
+           prefix="plone.resources/link"
+           remove="true"
+  />
+  <records interface="Products.CMFPlone.interfaces.IResourceRegistry"
+           prefix="plone.resources/user-information"
+           remove="true"
+  />
+</registry>

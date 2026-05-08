@@ -1,0 +1,59 @@
+﻿<?xml version="1.0"?>
+<object name="portal_actions" meta_type="Plone Actions Tool"
+        xmlns:i18n="http://xml.zope.org/namespaces/i18n">
+    <object name="user" meta_type="CMF Action Category">
+        <object name="logout" meta_type="CMF Action" i18n:domain="plone">
+            <property name="url_expr">context/logout_url</property>
+            <property name="available_expr">not:context/login_condition</property>
+            <property name="permissions">
+                <element value="View"/>
+            </property>
+            <property name="visible">True</property>
+        </object>
+        <object name="login" meta_type="CMF Action" i18n:domain="plone">
+            <property name="title" i18n:translate="">Log in</property>
+            <property name="url_expr">portal/@@get_login_url</property>
+            <property name="available_expr">context/login_condition</property>
+            <property name="permissions">
+                <element value="View"/>
+            </property>
+            <property name="visible">True</property>
+        </object>
+        <object name="change-password" meta_type="CMF Action" i18n:domain="plone" insert-before="myportals">
+            <property name="title" i18n:translate="">Change Password</property>
+            <property name="url_expr">string:${portal_url}/@@change-password</property>
+            <property name="icon_expr">string:lock</property>
+            <property name="permissions">
+                <element value="Set own password"/>
+            </property>
+            <property name="visible">True</property>
+        </object>
+        <object name="personal-info" meta_type="CMF Action" i18n:domain="plone">
+            <property name="title" i18n:translate="">Personal Information</property>
+            <property name="url_expr">string:${portal_url}/@@personal-information</property>
+            <property name="available_expr">python:member is not None</property>
+            <property name="icon_expr">string:person</property>
+            <property name="permissions">
+                <element value="View"/>
+            </property>
+            <property name="visible">True</property>
+        </object>
+        <object name="preferences">
+            <property name="visible">False</property>
+        </object>
+    </object>
+    <object name="site_reports" meta_type="CMF Action Category">
+        <object name="user_expiry" meta_type="CMF Action" i18n:domain="plone" insert-after="anonymous">
+            <property name="title" i18n:translate="">User Account Expiration</property>
+            <property name="description" i18n:translate="">A look at user accounts that are not yet linked to an IDP.
+            </property>
+            <property name="url_expr">string:${portal_url}/@@user_creation</property>
+            <property name="icon_expr">string:person</property>
+            <property name="available_expr"></property>
+            <property name="permissions">
+                <element value="Manage users"/>
+            </property>
+            <property name="visible">True</property>
+        </object>
+    </object>
+</object>
