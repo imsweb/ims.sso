@@ -1,16 +1,14 @@
 import datetime
 
+import pytest
+from ims.sso.configs import ACTIVE_STATUS, AUTHENTICATED_KEY, INACTIVE_STATUS
+from ims.sso.interfaces import IReactivationUtility
 from plone import api
+from plone.app.testing import TEST_USER_ID
+from plone.testing import zope
 from zope.annotation.interfaces import IAnnotations
 from zope.component import getUtility
 from zope.globalrequest import getRequest
-from plone.app.testing import TEST_USER_ID
-from plone.testing import zope
-import pytest
-from ims.users.configs import ACTIVE_STATUS
-from ims.users.configs import AUTHENTICATED_KEY
-from ims.users.configs import INACTIVE_STATUS
-from ims.users.interfaces import IReactivationUtility
 
 
 class TestAutoReactivation:

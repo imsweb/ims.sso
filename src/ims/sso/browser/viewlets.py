@@ -68,7 +68,7 @@ class AuthenticatedUnauthorizedViewlet(ViewletBase):
 
         login_gov_domains = [LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN]
         sso = getUtility(ISingleSignonUtility)
-        real_login_name = sso.loginname_from_request(self.request)
+        real_login_name = sso.get_login_from_request(self.request)
         if api.user.is_anonymous() and real_login_name:
             idp, _ = sso.extract_idp_login(real_login_name)
             if idp in login_gov_domains:
@@ -85,7 +85,7 @@ class AuthenticatedUnauthorizedViewlet(ViewletBase):
     def login_info(self):
         sso = getUtility(ISingleSignonUtility)
         shib_header_email = api.portal.get_registry_record(interface=ISettings, name="shib_header_email")
-        real_login_name = sso.loginname_from_request(self.request)
+        real_login_name = sso.get_login_from_request(self.request)
         if real_login_name:
             idp, idp_login_name = sso.extract_idp_login(real_login_name)
             if idp in [LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN]:

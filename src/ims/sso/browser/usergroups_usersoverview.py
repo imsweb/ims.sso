@@ -19,8 +19,6 @@ from ..configs import (
     ACTIVE_STATUS,
     DISABLED_STATUS,
     INACTIVE_STATUS,
-    LOGIN_DOT_GOV_DEV_IDP_DOMAIN,
-    LOGIN_DOT_GOV_IDP_DOMAIN,
     _,
 )
 from ..errors import NoSSOMailTemplatesException
@@ -130,8 +128,9 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
             idp, login = self.sso.extract_idp_login(user_account.getUserName())
             usr["idp"] = self.sso.get_idp_from_domain(idp)
             usr["login"] = login
-            if idp in [LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN]:
-                usr["login"] = None
+            # TODO - make rule for not displaying login
+            # if idp in [LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN]:
+            #     usr["login"] = None
             usr["first_name"] = user_account.getProperty("first_name", "") or ""
             usr["last_name"] = user_account.getProperty("last_name", "") or ""
             usr["service"] = user_account.getProperty("service", False)

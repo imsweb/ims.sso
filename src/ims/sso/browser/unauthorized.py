@@ -11,7 +11,7 @@ class Unauthorized(BrowserView):
 
     def login_info(self):
         sso = getUtility(ISingleSignonUtility)
-        real_login_name = sso.loginname_from_request(self.request)
+        real_login_name = sso.get_login_from_request(self.request)
         if real_login_name:
             idp, idp_login_name = sso.extract_idp_login(real_login_name)
             idp = sso.get_idp_from_domain(idp)

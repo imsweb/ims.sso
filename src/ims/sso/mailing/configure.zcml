@@ -28,35 +28,4 @@
       layer="..interfaces.IBrowserLayer"
       />
 
-  <utility
-      factory=".mailers.LoginDotGovMailTemplates"
-      provides="ims.sso.interfaces.IMailTemplates"
-      name="ims.sso.idp.login_dot_gov"
-      />
-  <utility
-      factory=".mailers.NIHMailTemplates"
-      provides="ims.sso.interfaces.IMailTemplates"
-      name="ims.sso.idp.nih"
-      />
-  <utility
-      factory=".mailers.NIHLoginDotGovMailTemplates"
-      provides="ims.sso.interfaces.IMailTemplates"
-      name="ims.sso.idp.nih_login_dot_gov"
-      />
-  <utility
-      factory=".mailers.CTEPMailTemplates"
-      provides="ims.sso.interfaces.IMailTemplates"
-      name="ims.sso.idp.ctep"
-      />
-  <utility
-      factory=".mailers.NoSSOMailTemplates"
-      provides="ims.sso.interfaces.IMailTemplates"
-      name="ims.sso.idp.nosso"
-      />
-  <utility
-      factory=".mailers.ADFSMailTemplates"
-      provides="ims.sso.interfaces.IMailTemplates"
-      name="ims.sso.idp.adfs"
-      />
-
 </configure>

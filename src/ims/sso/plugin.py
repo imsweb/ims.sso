@@ -23,8 +23,6 @@ from zope.interface.interfaces import ComponentLookupError
 from .configs import (
     ACTIVE_STATUS,
     AUTHENTICATED_KEY,
-    LOGIN_DOT_GOV_DEV_IDP_DOMAIN,
-    LOGIN_DOT_GOV_IDP_DOMAIN,
     LOGIN_UPDATE_THRESHOLD,
 )
 from .interfaces import ISettings
@@ -76,12 +74,6 @@ class ImsSsoPlugin(BasePlugin):
 
     def authenticateCredentials(self, credentials: Credentials):
         """credentials keys: username, password, idp, first_name, last_name, email"""
-        from .interfaces import ISingleSignonUtility
-
-        try:
-            sso = getUtility(ISingleSignonUtility)
-        except ComponentLookupError:  # this is also run on startup?
-            return None
 
         login = credentials.get("username")
         if login is None:
@@ -106,10 +98,7 @@ class ImsSsoPlugin(BasePlugin):
 
                 mtool.createMemberArea(member_id=user_id)
                 domain = urlparse(credentials["idp"]).netloc
-                if domain not in [
-                    LOGIN_DOT_GOV_IDP_DOMAIN,
-                    LOGIN_DOT_GOV_DEV_IDP_DOMAIN,
-                ]:
+                if domain not in api.portal.get_registry_record(interface=ISettings, name="non_update_domains"):
                     self.update_user(
                         username=user_id,
                         first_name=credentials.get("first_name"),
@@ -126,7 +115,7 @@ class ImsSsoPlugin(BasePlugin):
 
     def update_user(self, username, first_name, last_name, email=None):
         """Only update if there is a change in fullname/first_name/last_name/email"""
-        # TODO - move all of this to session creation
+        # TODO - if using a session, this should all be moved to the session creation
         props = {}
         member = api.user.get(userid=username)
         now = DateTime()
@@ -136,8 +125,6 @@ class ImsSsoPlugin(BasePlugin):
         login_time = member.getProperty("login_time", default)
 
         # set login time if older than some threshold
-        # if isinstance(login_time, datetime.datetime):
-        #     login_time = DateTime(login_time)
         if (
             not login_time
             or (
@@ -189,12 +176,9 @@ class ImsSsoPlugin(BasePlugin):
     def extractCredentials(self, request):
         from .interfaces import ISingleSignonUtility
 
-        # try:
         sso = getUtility(ISingleSignonUtility)
-        # except ComponentLookupError:  # this is also run on startup?
-        #     return None
 
-        login = sso.loginname_from_request(request)
+        login = sso.get_login_from_request(request)
         if not login:
             return None
 

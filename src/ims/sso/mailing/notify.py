@@ -16,20 +16,19 @@ class RegisteredNotify(BrowserView):
     def __call__(self, **kwargs):
         sso = getUtility(ISingleSignonUtility)
         portal_title = api.portal.get_registry_record("plone.site_title")
-        mpt = getMultiAdapter((self.context, self.request), name="mail_password_template")
+        mpt = getMultiAdapter((self.context, self.request), name="mail_relink_template")
         pw_reset = api.portal.get_tool("portal_password_reset")
         from_name = mpt.encoded_mail_sender()
         to_name = kwargs["member"].getProperty("email")
         subject = registration_subject(portal_title)
 
-        logingov_registration_url = sso.get_url(constructor="registration", email=to_name)
+        registration_url = sso.get_url_registration()
 
         templater = getUtility(IMailTemplatesUtility)
         notify_form = templater.registered_notify()
 
-        link_url = sso.get_url(
-            constructor="linkaccount",
-            randomstring=kwargs["reset"]["randomstring"],
+        link_url = sso.get_url_linkaccount(
+            link_key=kwargs["reset"]["randomstring"],
             userid=kwargs["member"].getId(),
         )
         timeout = pw_reset.getExpirationTimeout()
@@ -44,7 +43,7 @@ class RegisteredNotify(BrowserView):
             "to_name": to_name,
             "subject": subject,
             "portal_title": portal_title,
-            "logingov_registration_url": logingov_registration_url,
+            "registration_url": registration_url,
             "link_url": link_url,
             "userid": kwargs["member"].getId(),
             "timeout": timeout,
@@ -75,14 +74,13 @@ class MailPassword(RegisteredNotify):
         to_name = kwargs["member"].getProperty("email")
         subject = f"Update Login service for {portal_title}"
         charset = kwargs["charset"]
-        logingov_registration_url = sso.get_url(constructor="registration", email=to_name)
+        registration_url = sso.get_url_registration()
 
         templater = getUtility(IMailTemplatesUtility)
-        password_form = templater.mail_password()
+        password_form = templater.mail_relink()
 
-        link_url = sso.get_url(
-            constructor="linkaccount",
-            randomstring=kwargs["reset"]["randomstring"],
+        link_url = sso.get_url_linkaccount(
+            link_key=kwargs["reset"]["randomstring"],
             userid=kwargs["member"].getId(),
         )
         timeout = pw_reset.getExpirationTimeout()
@@ -94,7 +92,7 @@ class MailPassword(RegisteredNotify):
             "subject": subject,
             "charset": charset,
             "portal_title": portal_title,
-            "logingov_registration_url": logingov_registration_url,
+            "registration_url": registration_url,
             "link_url": link_url,
             "timeout": timeout,
             "timeout_d": timeout_d,

@@ -7,7 +7,7 @@
   <genericsetup:registerProfile
       name="default"
       title="ims.sso"
-      description="Core package for IMS Plone sites. Manages user registration, authentication, and related tasks"
+      description="Shibboleth integration for Plone. Manages user registration, authentication, and related tasks"
       provides="Products.GenericSetup.interfaces.EXTENSION"
       directory="profiles/default"
       post_handler="ims.sso.setuphandlers.setup_various"

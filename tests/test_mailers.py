@@ -1,26 +1,41 @@
 import pytest
-from ims.sso.configs import CHALLENGE_HEADER_KEY, IDP_KEY
-from ims.sso.interfaces import IMailTemplatesUtility
-from ims.sso.utility import (
-    ADFS_LOGOUT_URL,
-    GENERIC_LOGOUT_URL,
-    LINK_ACCOUNT,
-    LOGOUT,
-    OKTA_LOGOUT_URL,
-    REGISTRATION,
-)
+from ims.sso.interfaces import IMailTemplates, ISettings
 from plone import api
-from zope.component import getUtility
+from zope.component import provideUtility
 
 
-class TestPlugins:
+class MyIdpMailTemplates:
+    """Only the IMS service provider is available"""
+
+    title = "MyIdp"
+
+    def registered_notify(self):
+        return """You ({to_name}) have been registered as a user on {portal_title}.
+
+To log in to {portal_title}, you must use MyIdP.
+
+Step 1: If you do not have a MyIdp account, please create one at https://foo.bar/create-an-account/.
+If you already have a MyIdp account, continue to Step 2.
+
+Step 2: Link your MyIdp account with {portal_title} by following this link: {link_url}
+"""
+
+    def mail_relink(self):
+        return """Please update your login service for {portal_title} by linking a MyIdp account.
+
+Step 1: If you do not have a MyIdp account, please create one at {registration_url}.
+If you already have a MyIdp account, continue to Step 2.
+
+Step 2: Link your MyIdp account with {portal_title} by following this link: {link_url}
+"""
+
+
+class TestMailers:
     @pytest.fixture(autouse=True)
     def setup_users(self, sso):
         self.email_params = {
-            "link_url": sso.get_url(LINK_ACCOUNT, randomstring="froggy", userid="foobar"),
-            "registration_email": sso.get_url(REGISTRATION, email="noreplay@imsweb.com"),
-            "okta_registration_url": sso.get_url(REGISTRATION, email="noreplay@imsweb.com", okta=True),
-            "logingov_registration_url": sso.get_url(REGISTRATION, email="noreplay@imsweb.com"),
+            "link_url": sso.get_url_linkaccount(link_key="froggy", userid="foobar"),
+            "registration_email": sso.get_url_registration(),
             "portal_title": "Super site!",
             "to_name": "wohnlice@imsweb.com",
             "from_name": "wohnlice@imsweb.com",
@@ -29,90 +44,30 @@ class TestPlugins:
             "timeout_d": "",
         }
 
+    @pytest.fixture(autouse=True)
+    def setup_settings(self, portal):
+        provideUtility(MyIdpMailTemplates, provides=IMailTemplates, name="ims.sso.test_idp")
+        api.portal.set_registry_record(name="mail_format", interface=ISettings, value="ims.sso.test_idp")
+        api.portal.set_registry_record(name="idps", interface=ISettings, value=["foo.bar|MyIdp|https://foo.bar/logout"])
+        api.portal.set_registry_record(
+            name="generic_logout", interface=ISettings, value="https://foo_generic.bar/logout"
+        )
+        api.portal.set_registry_record(
+            name="registration_url", interface=ISettings, value="https://foo.bar/create-account"
+        )
+
     def test_registration_url(self, sso):
-        reg = sso.get_url(REGISTRATION, email="noreply@imsweb.com")
-        assert "login.gov" in reg
+        reg = sso.get_url_registration()
+        assert "foo.bar" in reg
 
-    def test_registration_url_required_params(self, sso):
-        with pytest.raises(TypeError):
-            sso.get_url(REGISTRATION)
-
-    def test_logout_url(self, http_request, sso):
+    def test_logout_url(self, http_request, sso, shib_header_user, shib_header_idp):
         http_request.environ = {
-            IDP_KEY: "https://adfs.omni.imsweb.com/loginfoobar",
-            CHALLENGE_HEADER_KEY: "wohnlice",
+            shib_header_idp: "https://foo.bar/login",
+            shib_header_user: "wohnlice",
         }
-        logout = sso.get_url(LOGOUT, request=http_request)
-        assert logout == f"/Shibboleth.sso/Logout?return={ADFS_LOGOUT_URL}"
-        http_request.environ[IDP_KEY] = "https://www.okta.com/ims"
-        logout = sso.get_url(LOGOUT, request=http_request)
-        assert logout == f"/Shibboleth.sso/Logout?return={OKTA_LOGOUT_URL}"
-        http_request.environ[IDP_KEY] = "https://foobar.com"
-        logout = sso.get_url(LOGOUT, request=http_request)
-        assert logout == f"/Shibboleth.sso/Logout?return={GENERIC_LOGOUT_URL}"
+        logout = sso.get_url_logout(request=http_request)
+        assert logout == "https://foo.bar/logout"
 
-    def test_logout_url_required_params(self, sso):
-        with pytest.raises(TypeError):
-            sso.get_url(LOGOUT)
-
-    def test_relink_url(self, sso):
-        relink = sso.get_url(LINK_ACCOUNT, randomstring="froggy", userid="wohnlice")
-        assert "/linkaccount/froggy/wohnlice" in relink
-
-    def test_relink_url_required_params(self, sso):
-        with pytest.raises(TypeError):
-            sso.get_url(LINK_ACCOUNT)
-        with pytest.raises(TypeError):
-            sso.get_url(LINK_ACCOUNT, randomstring="froggy")
-        with pytest.raises(TypeError):
-            sso.get_url(LINK_ACCOUNT, userid="wohnlice")
-
-    def test_password_reset_mailer_ims_nih(self, portal):
-        templater = getUtility(IMailTemplatesUtility)
-        api.portal.set_registry_record("ims.users.interfaces.IControlPanel.mail_format", "ims.users.idp.ims_nih")
-        password_form = templater.mail_password().format(**self.email_params)
-        registration_form = templater.registered_notify().format(**self.email_params)
-        assert "IMS Login Service" in password_form
-        assert "NIH Network" in password_form
-        assert "IMS Login Service" in registration_form
-        assert "NIH Network" in registration_form
-        full_form = templater.mail_form(templater.mail_password(), params=self.email_params)
-        assert full_form is not None
-
-    def test_password_reset_mailer_ims(self, portal):
-        templater = getUtility(IMailTemplatesUtility)
-        api.portal.set_registry_record("ims.users.interfaces.IControlPanel.mail_format", "ims.users.idp.ims")
-        password_form = templater.mail_password().format(**self.email_params)
-        registration_form = templater.registered_notify().format(**self.email_params)
-        assert "IMS Login Service" in password_form
-        assert "NIH Network" not in password_form
-        assert "IMS Login Service" in registration_form
-        assert "NIH Network" not in registration_form
-        full_form = templater.mail_form(templater.mail_password(), params=self.email_params)
-        assert full_form is not None
-
-    def test_password_reset_mailer_nih(self, portal):
-        templater = getUtility(IMailTemplatesUtility)
-        api.portal.set_registry_record("ims.users.interfaces.IControlPanel.mail_format", "ims.users.idp.nih")
-        password_form = templater.mail_password().format(**self.email_params)
-        registration_form = templater.registered_notify().format(**self.email_params)
-        assert "IMS Login Service" not in password_form
-        assert "NIH Network" in password_form
-        assert "IMS Login Service" not in registration_form
-        assert "NIH Network" in registration_form
-        full_form = templater.mail_form(templater.mail_password(), params=self.email_params)
-        assert full_form is not None
-
-    def test_password_reset_mailer_ctep(self, portal):
-        templater = getUtility(IMailTemplatesUtility)
-        api.portal.set_registry_record("ims.users.interfaces.IControlPanel.mail_format", "ims.users.idp.ctep")
-        password_form = templater.mail_password().format(**self.email_params)
-        registration_form = templater.registered_notify().format(**self.email_params)
-        assert "IMS Login Service" not in password_form
-        assert "NIH Network" not in password_form
-        assert "CTEP" in password_form
-        assert "IMS Login Service" not in registration_form
-        assert "NIH Network" not in registration_form
-        assert "CTEP" in registration_form
-        full_form = templater.mail_form(templater.mail_password(), params=self.email_params)
-        assert full_form is not None
+        http_request.environ[shib_header_idp] = "https://othersite.com"
+        logout = sso.get_url_logout(request=http_request)
+        assert logout == "https://foo_generic.bar/logout"

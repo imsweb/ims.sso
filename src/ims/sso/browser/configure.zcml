@@ -109,7 +109,7 @@
       />
 
   <browser:page
-      name="mail_password_template"
+      name="mail_relink_template"
       for="*"
       class="..mailing.notify.MailPassword"
       permission="zope.Public"
@@ -142,10 +142,12 @@
       permission="zope2.Public"
       layer="..interfaces.IBrowserLayer"
       />
+
+  <!-- this just prevents the default login form -->
   <browser:page
       name="login"
       for="plone.base.interfaces.INavigationRoot"
-      class=".login.ShibbolethLogin"
+      class=".login.RedirectLogin"
       permission="zope.Public"
       layer="..interfaces.IBrowserLayer"
       />

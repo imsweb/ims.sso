@@ -42,9 +42,9 @@ class MassRelink(AutoExtensibleForm, form.Form):
             to_name = member.getProperty("email")
 
             retval = reset.requestReset(user_id)
-            registration_email = sso.get_url(constructor="registration", email=to_name)
+            registration_email = sso.get_url_registration()
             randomstring = retval["randomstring"]
-            link_url = sso.get_url(constructor="linkaccount", randomstring=randomstring, userid=user_id)
+            link_url = sso.get_url_linkaccount(link_key=randomstring, userid=user_id)
 
             timeout = reset.getExpirationTimeout()
             timeout_d = (DateTime() + timeout).aCommonZ()

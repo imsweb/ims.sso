@@ -26,18 +26,15 @@ class LoginFilter(logging.Filter):
         return True
 
 
-class ShibbolethLogin(LoginForm):
+class RedirectLogin(LoginForm):
     """This is the Plone default login page. SSO sites do not use it."""
 
     def __call__(self):
-        mtool = api.portal.get_tool("portal_membership")
+        self.request.response.redirect(api.portal.get().absolute_url())
+        return
 
-        import pdb
-
-        pdb.set_trace()
-        # we'll need to
-        mtool.loginUser(self.request)
-        # TODO  - call all plugin.update_user code here instead
+        # TODO - alternatively this could create a session
+        # we would need to update the auth/unauth check
 
 
 class SsoLogout(BrowserView):
@@ -45,16 +42,18 @@ class SsoLogout(BrowserView):
         return getUtility(ISingleSignonUtility)
 
     def __call__(self):
-        self.context.restrictedTraverse("browser_id_manager").flushBrowserIdCookie()
-        for cookie in self.request.cookies:
-            self.request.response.setCookie(
-                cookie,
-                self.request.cookies[cookie],
-                path="/",
-                expires="Thu, 01 Jan 1970 00:00:00 GMT",
-            )
+        return
+        # TODO - do not use for no-session. For session, delete cookie
+        # self.context.restrictedTraverse("browser_id_manager").flushBrowserIdCookie()
+        # for cookie in self.request.cookies:
+        #     self.request.response.setCookie(
+        #         cookie,
+        #         self.request.cookies[cookie],
+        #         path="/",
+        #         expires="Thu, 01 Jan 1970 00:00:00 GMT",
+        #     )
 
-        self.request.response.redirect(self.sso().get_url(constructor="logout", request=self.request))
+        # self.request.response.redirect(self.sso().get_url_logout(request=self.request))
 
 
 @implementer(IPublishTraverse)
@@ -78,15 +77,15 @@ class SsoLinkaccount(BrowserView):
 
         usr = api.user.get(userid=user_id)
         is_relink = usr and NOT_LINKED not in usr.getUserName()
-        login_name = sso.loginname_from_request(self.request)
+        login_name = sso.get_login_from_request(self.request)
         email = self.request.get("HTTP_SHIBEMAIL")
 
         if login_name and email:
             pw_tool = api.portal.get_tool("portal_password_reset")
             try:
                 pw_tool.verifyKey(key)
-                password = sso.generate_password(user_id)
-                pw_tool.resetPassword(user_id, key, password)
+                link_key = sso.generate_key(user_id)
+                pw_tool.resetPassword(user_id, key, link_key)
             except InvalidRequestError:
                 return self.invalid_key()
 
@@ -110,12 +109,7 @@ class SsoLinkaccount(BrowserView):
                 return self.disallowed()
             return self.success()
         else:
-            login_url = self.context.restrictedTraverse("get_login_url")()
-            if "target" in login_url:
-                login_url = login_url.split("target=")[0]
-                return self.request.response.redirect(login_url + "target=" + self.request["URL"])
-            else:
-                return ViewPageTemplateFile("templates/linkaccount_anonymous.pt")(self)
+            return ViewPageTemplateFile("templates/linkaccount_anonymous.pt")(self)
 
     def disallowed(self):
         return ViewPageTemplateFile("templates/linkaccount_disallowed.pt")(self)

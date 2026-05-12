@@ -1,7 +1,7 @@
 import datetime
 import hashlib
 import logging
-from typing import Literal
+import warnings
 from urllib.parse import urlparse
 
 import DateTime
@@ -14,28 +14,9 @@ from zope.component import getUtility, queryUtility
 from zope.globalrequest import getRequest
 from ZPublisher.HTTPRequest import HTTPRequest
 
-from .configs import (
-    ACTIVE_STATUS,
-    ADFS_IDP_DOMAIN,
-    ADFS_LOGOUT_URL,
-    APACHE_NULL,
-    AUTHENTICATED_KEY,
-    DISABLED_STATUS,
-    GENERIC_LOGOUT_URL,
-    IDP_FRIENDLY_NAMES,
-    INACTIVE_STATUS,
-    LOGIN_DOT_GOV_DEV_IDP_DOMAIN,
-    LOGIN_DOT_GOV_IDP_DOMAIN,
-    LOGIN_DOT_GOV_LOGOUT_URL,
-    LOGINGOV_REGISTRATION_URL,
-    NIH_DEV_IDP_DOMAIN,
-    NIH_DEV_LOGOUT_URL,
-    NIH_IDP_DOMAIN,
-    NIH_LOGOUT_URL,
-)
+from .configs import ACTIVE_STATUS, APACHE_NULL, AUTHENTICATED_KEY, DISABLED_STATUS, INACTIVE_STATUS, NOT_LINKED
 from .errors import NoSSOMailTemplatesException
 from .interfaces import IMailTemplates, ISettings
-from .mailing.mailers import BaseMailTemplates
 
 send_portal_link_msg = """Your account has been successfully updated on {}.
 
@@ -59,7 +40,10 @@ class SingleSignonUtility:
 
     @staticmethod
     def initialize_login(data: dict) -> None:
-        """Create a randomized login name for the unlinked account"""
+        """Create a randomized login name for the unlinked account
+
+        Effectively, this account cannot be used until linked
+        """
         pas = api.portal.get_tool("acl_users")
         login_name = hashlib.sha256(data["user_id"].encode("utf-8")).hexdigest() + "@not.linked"  # nosec
         pas.updateLoginName(data["user_id"], login_name)
@@ -76,71 +60,71 @@ class SingleSignonUtility:
         return f"{login}@{domain}"
 
     # TODO - remove
-    loginname_from_request = get_login_from_request
+    def loginname_from_request(self, request: HTTPRequest) -> str:
+        warnings.warn("Use get_login_from_request", DeprecationWarning, stacklevel=2)
+        return self.get_login_from_request(request)
 
-    @staticmethod
-    def get_idp_domain_from_login(loginname: str) -> tuple[str, str]:
+    @property
+    def idp_info(self) -> dict[str : dict[str:str]]:
+        """Get supported IdPs"""
+        idps = api.portal.get_registry_record(interface=ISettings, name="idps")
+        _idps = {}
+        for idp in idps:
+            idp_id, name, logout = idp.split("|")
+            _idps[idp_id] = {"title": name, "logout": logout}
+        return _idps
+
+    def get_idp_domain_from_login(self, login_name: str) -> tuple[str, str]:
         """If given wohnlice@adfs.omni.imsweb.com, return ["wohnlice", "adfs.omni.imsweb.com"]"""
-        if not [idp for idp in IDP_FRIENDLY_NAMES if idp in loginname]:
-            return "unknown IDP", loginname
-        name = loginname.split("@")
+        name = login_name.split("@")
         domain = name.pop()
         name = "@".join(name)
+        if domain not in self.idp_info:
+            return "unknown IDP", login_name
+
         return domain, name
 
-    # TODO - remove
-    extract_idp_login = get_idp_domain_from_login
+    def extract_idp_login(self, login_name):
+        warnings.warn("Use get_idp_domain_from_login", category=DeprecationWarning, stacklevel=2)
+        return self.get_idp_domain_from_login(login_name)
 
     @staticmethod
-    def generate_password(_string: str) -> str:
+    def generate_key(_string: str) -> str:
+        """Generate a unique key. Used for linking user account to IdP account
+
+        Idea borrowed from portal_registration"""
         return hashlib.sha256(_string.encode("utf-8")).hexdigest()
 
     @staticmethod
     def get_setting(field: str) -> str:
+        """Helper method"""
         return api.portal.get_registry_record(interface=ISettings, name=field)
 
-    def get_url(self, constructor: Literal["logout", "linkaccount", "registration"], **kwargs: dict) -> str:
-        """Constructs the url for the given action
+    def get_url_logout(self, request: HTTPRequest) -> str:
+        """Get the logout URL. This will be determined by the REQUEST headers and IdP settings"""
+        login_name = self.get_login_from_request(request)
+        generic_logout = api.portal.get_registry_record(interface=ISettings, name="generic_logout")
+        try:
+            idp, login_name = self.get_idp_domain_from_login(login_name)
+        except TypeError:
+            return generic_logout
 
-        :param constructor_idx: registration, linkaccount, logout
-        :param kwargs: additional parameters for url constructors
-        :return: URL
-        """
+        logout_url = self.idp_info[idp]["logout"] if idp in self.idp_info else generic_logout
 
-        def logout(request: HTTPRequest) -> str:
-            login_name = self.loginname_from_request(request)
-            try:
-                idp, login_name = self.extract_idp_login(login_name)
-            except TypeError:
-                return api.portal.get().absolute_url()
+        return logout_url
 
-            shibb_logout = "/Shibboleth.sso/Logout?return={logout_url}"
-            logout_url = {
-                ADFS_IDP_DOMAIN: ADFS_LOGOUT_URL,
-                NIH_IDP_DOMAIN: NIH_LOGOUT_URL,
-                NIH_DEV_IDP_DOMAIN: NIH_DEV_LOGOUT_URL,
-                LOGIN_DOT_GOV_IDP_DOMAIN: LOGIN_DOT_GOV_LOGOUT_URL,
-                LOGIN_DOT_GOV_DEV_IDP_DOMAIN: LOGIN_DOT_GOV_LOGOUT_URL,
-            }
-            return shibb_logout.format(logout_url=logout_url.get(idp, GENERIC_LOGOUT_URL))
+    def get_url_linkaccount(self, link_key: str, userid: str) -> str:
+        """Use the generated link key"""
+        host = api.portal.get().absolute_url()
+        return f"{host}/linkaccount/{link_key}/{userid}"
 
-        def linkaccount(randomstring: str, userid: str) -> str:
-            """generate a password reset url"""
-            host = api.portal.get().absolute_url()
-            return f"{host}/linkaccount/{randomstring}/{userid}"
+    def get_url_registration(self) -> str:
+        """Optional - used in mail templates. Use this to direct a user to register with one of your IdPs"""
+        return api.portal.get_registry_record(interface=ISettings, name="registration_url")
 
-        def registration(
-            email: str,
-        ) -> str:
-            portal_url = api.portal.get().absolute_url()
-            return LOGINGOV_REGISTRATION_URL.format(email=email, portal_url=portal_url)
-
-        constructors = {"logout": logout, "linkaccount": linkaccount, "registration": registration}
-        return constructors[constructor](**kwargs)
-
-    @staticmethod
-    def get_idp_from_domain(domain: str) -> str:
-        return IDP_FRIENDLY_NAMES.get(domain, domain)
+    def get_idp_from_domain(self, domain: str) -> str:
+        """Get all info (title, logout url) for the given domain"""
+        return self.idp_info[domain]["title"] if domain in self.idp_info else domain
 
     @staticmethod
     def set_login_name(user_id: str, login_name: str) -> None:
@@ -210,7 +194,7 @@ class SingleSignonUtility:
                 usr.setMemberProperties({"created_date": today})
                 date = today
 
-            if "@not.linked" in usr.getUserName() and (today - date).days >= expiry:
+            if f"{NOT_LINKED}" in usr.getUserName() and (today - date).days >= expiry:
                 expired.append(usr.getProperty("email"))
                 deleted.append(usr.getId())
                 logger.info(
@@ -273,7 +257,7 @@ class MailTemplatesUtility:
     )
 
     @staticmethod
-    def get_format() -> BaseMailTemplates:
+    def get_format():
         try:
             mail_format = api.portal.get_registry_record(interface=ISettings, name="mail_format")
         except api.exc.InvalidParameterException as err:
@@ -289,9 +273,9 @@ class MailTemplatesUtility:
         mailer = self.get_format()
         return mailer.registered_notify()
 
-    def mail_password(self) -> str:
+    def mail_relink(self) -> str:
         mailer = self.get_format()
-        return mailer.mail_password()
+        return mailer.mail_relink()
 
     def mail_form(self, template: str, params: dict):
         return (self.subject + template + self.expiry).format(**params)

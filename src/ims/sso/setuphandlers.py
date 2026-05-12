@@ -1,4 +1,4 @@
-import plone.api
+from plone import api
 from plone.schemaeditor import interfaces
 from plone.schemaeditor.fields import FieldFactory
 from plone.schemaeditor.utils import FieldAddedEvent, IEditableSchema
@@ -16,7 +16,7 @@ from .configs import _
 
 
 def configure_plugin():
-    acl = plone.api.portal.get_tool("acl_users")
+    acl = api.portal.get_tool("acl_users")
     plugins = acl["plugins"]
     plugin_id = "ims_sso_plugin"
 
@@ -46,13 +46,9 @@ def setup_various(context):
     setup_user_schema()
 
 
-def add_user_field(field):
-    """adds user field to TTW schema
-
-    :param field: dict(data=form_data, factory=field_factory, forms=['On Registration', 'In User Profile'])
-    :return:
-    """
-    context = plone.api.portal.get().restrictedTraverse("member-fields")
+def add_user_field(field: dict):
+    """adds user field to TTW schema"""
+    context = api.content.get_view(name="member-fields", context=api.portal.get())
     for schemata in [v for k, v in getAdapters((context,), interfaces.IFieldEditorExtender)]:
         factory = field["factory"]
         field_obj = factory(**field["data"])

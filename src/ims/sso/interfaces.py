@@ -39,7 +39,7 @@ class IMailTemplates(Interface):
     def registered_notify(self):
         pass
 
-    def mail_password(self):
+    def mail_relink(self):
         pass
 
 
@@ -93,7 +93,7 @@ class ISettings(model.Schema):
     shib_header_idp = schema.TextLine(title="Shibboleth Header - IDP", default="HTTP_SHIBIDP", required=True)
     shib_header_null = schema.TextLine(
         title="Shibboleth Header - null header",
-        description="TODO - what is this?",
+        description="Special value for null user returned by Apache",
         default="HTTP_IMSSSONULLCHECK",
         required=False,
     )
@@ -108,6 +108,36 @@ class ISettings(model.Schema):
         value_type=schema.TextLine(),
         description="Don't display the viewlet on these pages. Generally these are views that you expect to be ok to use anonymously",
         default=["linkaccount", "reactivate_user", "reactivation", "contact-info"],
+    )
+    idps = schema.List(
+        title="IdPs",
+        value_type=schema.TextLine(),
+        description="Format is domain|friendly-name|logout-url",
+        default=[
+            "not.linked|Not Linked|",
+            "adfs.omni.imsweb.com|IMS Employee Login|/Shibboleth.sso/Logout?return=https://adfs.omni.imsweb.com/adfs/ls/IdpInitiatedSignon.aspx",
+            "auth.nih.gov|NIH|/Shibboleth.sso/Logout?return=https://auth.nih.gov/advancedlogin/logout.asp ",
+            "authdev.nih.gov|NIH (dev)|/Shibboleth.sso/Logout?return=https://authdev.nih.gov/advancedlogin/logout.asp",
+            "iapps-ctep-.nci.nih.gov|CTEP|",
+            "auth.ncats.nih.gov|Login.gov|/Shibboleth.sso/Logout?return=https://secure.login.gov/api/saml/logout2024",
+            "a-ci.ncats.io|Login.gov (dev)|/Shibboleth.sso/Logout?return=https://secure.login.gov/api/saml/logout2024",
+        ],
+    )
+    generic_logout = schema.TextLine(
+        title="Generic Logout URL",
+        description="Logout to use if no IdP specific logout",
+        default="/Shibboleth.sso/Logout?return=https://help.loginservice.imsweb.com/logout",
+    )
+    registration_url = schema.TextLine(
+        title="Registration URL",
+        description="Link to a registration page for one of the supported IdPs",
+        default="https://login.gov/create-an-account/",
+    )
+    non_update_domains = schema.List(
+        title="Non-updating IdPs",
+        description="Domain names for IdPs where email/name to exclude from user updates.",
+        value_type=schema.TextLine(),
+        default=["auth.ncats.nih.gov", "a-ci.ncats.io"],
     )
 
 
