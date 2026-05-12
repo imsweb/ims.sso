@@ -48,7 +48,7 @@ def setup_various(context):
 
 def add_user_field(field: dict):
     """adds user field to TTW schema"""
-    context = api.content.get_view(name="member-fields", context=api.portal.get())
+    context = api.portal.get().restrictedTraverse("member-fields")
     for schemata in [v for k, v in getAdapters((context,), interfaces.IFieldEditorExtender)]:
         factory = field["factory"]
         field_obj = factory(**field["data"])
