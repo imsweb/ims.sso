@@ -106,7 +106,8 @@ class ISettings(model.Schema):
     unauth_ignored_views = schema.List(
         title="Views to ignore use of Auth/Unauth warning",
         value_type=schema.TextLine(),
-        description="Don't display the viewlet on these pages. Generally these are views that you expect to be ok to use anonymously",
+        description="Don't display the viewlet on these pages. "
+        "Generally these are views that you expect to be ok to use anonymously",
         default=["linkaccount", "reactivate_user", "reactivation", "contact-info"],
     )
     idps = schema.List(
@@ -147,8 +148,10 @@ class IUserExpiryUtility(Interface):
 
 @provider(IVocabularyFactory)
 def active_status(context):
-    return SimpleVocabulary([
-        SimpleTerm(value=ACTIVE_STATUS, title="Active"),
-        SimpleTerm(value=INACTIVE_STATUS, title="Inactive"),
-        SimpleTerm(value=DISABLED_STATUS, title="Disabled"),
-    ])
+    return SimpleVocabulary(
+        [
+            SimpleTerm(value=ACTIVE_STATUS, title="Active"),
+            SimpleTerm(value=INACTIVE_STATUS, title="Inactive"),
+            SimpleTerm(value=DISABLED_STATUS, title="Disabled"),
+        ]
+    )
