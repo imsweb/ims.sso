@@ -92,13 +92,11 @@ class AddUserForm(BaseAddUserForm):
         self.sso.initialize_login(data)
 
         member = api.user.get(userid=data["user_id"])
-        member.setMemberProperties(
-            {
-                "created_date": datetime.date.today(),
-                "activation_date": datetime.date.today(),
-                "active": "active",
-            }
-        )
+        member.setMemberProperties({
+            "created_date": datetime.date.today(),
+            "activation_date": datetime.date.today(),
+            "active": "active",
+        })
 
     def applyProperties(self, userid, data):
         """we needed to add fullname but now we have to remove it or applyProperties fails

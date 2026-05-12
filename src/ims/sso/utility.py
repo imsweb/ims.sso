@@ -237,24 +237,20 @@ class SingleSignonUtility:
 
 
 class MailTemplatesUtility:
-    subject = "\n".join(
-        (
-            "From: {from_name}",
-            "To: {to_name}",
-            "Subject: {subject}",
-            "Precedence: bulk",
-            "",
-            "",
-        )
-    )
-    expiry = "\n".join(
-        (
-            "",
-            "",
-            "This link will expire in {timeout} days (by {timeout_d}).",
-            "If {timeout} days have elapsed, please reply to this e-mail and request another link.",
-        )
-    )
+    subject = "\n".join((
+        "From: {from_name}",
+        "To: {to_name}",
+        "Subject: {subject}",
+        "Precedence: bulk",
+        "",
+        "",
+    ))
+    expiry = "\n".join((
+        "",
+        "",
+        "This link will expire in {timeout} days (by {timeout_d}).",
+        "If {timeout} days have elapsed, please reply to this e-mail and request another link.",
+    ))
 
     @staticmethod
     def get_format():

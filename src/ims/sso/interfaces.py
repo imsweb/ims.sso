@@ -147,10 +147,8 @@ class IUserExpiryUtility(Interface):
 
 @provider(IVocabularyFactory)
 def active_status(context):
-    return SimpleVocabulary(
-        [
-            SimpleTerm(value=ACTIVE_STATUS, title="Active"),
-            SimpleTerm(value=INACTIVE_STATUS, title="Inactive"),
-            SimpleTerm(value=DISABLED_STATUS, title="Disabled"),
-        ]
-    )
+    return SimpleVocabulary([
+        SimpleTerm(value=ACTIVE_STATUS, title="Active"),
+        SimpleTerm(value=INACTIVE_STATUS, title="Inactive"),
+        SimpleTerm(value=DISABLED_STATUS, title="Disabled"),
+    ])

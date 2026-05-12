@@ -7,12 +7,10 @@ test_user_id = "someCrazyUserIdForGuido"
 class TestPlugins:
     def test_find_user_by_plugin(self, plugin):
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
-        assert plugin.authenticateCredentials(
-            {
-                "username": test_login + "@adfs.imsweb.com",
-                "idp": "https://www.okta.com",
-            }
-        ) == (test_user_id, test_login + "@adfs.imsweb.com")
+        assert plugin.authenticateCredentials({
+            "username": test_login + "@adfs.imsweb.com",
+            "idp": "https://www.okta.com",
+        }) == (test_user_id, test_login + "@adfs.imsweb.com")
 
     def test_extraction_plugin(
         self,

@@ -318,17 +318,15 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
             not self.request.get("active") and not self.request.get("inactive") and not self.request.get("disabled")
         )
         for opt in getUtility(IVocabularyFactory, name="ims.sso.active_status")(self):
-            opts.append(
-                {
-                    "value": opt.value,
-                    "title": opt.title,
-                    "showAll": find_all,
-                    "noSearch": no_search,
-                    "selectActive": self.request.get("active") == opt.value and not find_all,
-                    "selectInactive": self.request.get("inactive") == opt.value and not find_all,
-                    "selectDisabled": self.request.get("disabled") == opt.value and not find_all,
-                }
-            )
+            opts.append({
+                "value": opt.value,
+                "title": opt.title,
+                "showAll": find_all,
+                "noSearch": no_search,
+                "selectActive": self.request.get("active") == opt.value and not find_all,
+                "selectInactive": self.request.get("inactive") == opt.value and not find_all,
+                "selectDisabled": self.request.get("disabled") == opt.value and not find_all,
+            })
 
         return opts
 
@@ -339,13 +337,11 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
         unsortable_cols = [len_cols - 3, len_cols - 1]
         if self.can_change_roles():
             unsortable_cols = list(range(3, len(self.portal_roles) + 3)) + unsortable_cols
-        return json.dumps(
-            {
-                "searching": False,
-                "info": False,
-                "lengthMenu": [[25, 50, -1], [25, 50, "All"]],
-                "pageLength": 25,
-                "stateSave": True,
-                "columnDefs": [{"orderable": False, "targets": unsortable_cols}],
-            }
-        )
+        return json.dumps({
+            "searching": False,
+            "info": False,
+            "lengthMenu": [[25, 50, -1], [25, 50, "All"]],
+            "pageLength": 25,
+            "stateSave": True,
+            "columnDefs": [{"orderable": False, "targets": unsortable_cols}],
+        })
