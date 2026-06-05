@@ -17,6 +17,12 @@
       <role name="Manager" />
     </permission>
     <permission acquire="True"
+                name="ims.sso: notification settings"
+    >
+      <role name="Manager" />
+      <role name="Site Administrator" />
+    </permission>
+    <permission acquire="True"
                 name="ims.sso: basic settings"
     >
       <role name="Manager" />

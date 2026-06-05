@@ -4,6 +4,7 @@
     i18n_domain="ims.sso"
     >
 
+  <!-- CMFPlone customized-->
   <browser:page
       name="registered_notify_template"
       for="zope.interface.Interface"
@@ -12,13 +13,31 @@
       layer="..interfaces.IBrowserLayer"
       />
 
+  <!-- CMFPlone customized-->
   <browser:page
+      name="mail_password_template"
+      for="*"
+      class=".notify.MailRelink"
+      permission="zope.Public"
+      layer="..interfaces.IBrowserLayer"
+      />
+  <!-- Alternative name -->
+  <browser:page
+      name="mail_relink_template"
+      for="*"
+      class=".notify.MailRelink"
+      permission="zope.Public"
+      layer="..interfaces.IBrowserLayer"
+      />
+
+  <!-- TODO - remove (likely vestigial) -->
+  <!-- <browser:page
       name="mail-password"
       for="zope.interface.Interface"
       class=".notify.MailPassword"
       permission="zope2.ManageUsers"
       layer="..interfaces.IBrowserLayer"
-      />
+      /> -->
 
   <browser:page
       name="mass_relink"
@@ -27,5 +46,12 @@
       permission="ims.sso.MassRelink"
       layer="..interfaces.IBrowserLayer"
       />
+
+  <utility
+      factory=".mailers.NoSSOMailTemplates"
+      provides="ims.sso.interfaces.IMailTemplates"
+      name="ims.sso.idp.nosso"
+      />
+
 
 </configure>

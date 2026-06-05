@@ -1,5 +1,5 @@
 <div class="container"
-     id="authenticated_unauthorized_viewlet"
+     id="sso_warnings_viewlet"
      tal:condition="view/show_alert"
 >
   <div class="alert alert-warning"
@@ -27,7 +27,7 @@
       </tal:unknown>
     </tal:warning>
 
-    <tal:disabled condition="view/is_inactive">
+    <tal:inactive condition="view/is_inactive">
             Your account has been locked due to inactivity for security reasons.
       <form action="${view/reactivation_url}"
             method="POST"
@@ -37,7 +37,8 @@
                     Reactivate my account
         </button>
       </form>
-    </tal:disabled>
+    </tal:inactive>
+
     <tal:disabled condition="view/is_disabled">
             Your account has been disabled. Contact the
       <a href="${context/absolute_url}/contact-info">site administrator</a>

@@ -1,5 +1,3 @@
-import logging
-
 from ims.graylog.subscribers import get_logger
 from plone import api
 from plone.protect import CheckAuthenticator, PostOnly
@@ -17,15 +15,6 @@ from ..configs import AUTHENTICATED_KEY, NOT_LINKED, _
 from ..interfaces import IReactivationUtility, ISingleSignonUtility
 
 
-class LoginFilter(logging.Filter):
-    def filter(self, record):
-        record.application = "Plone"
-
-        record.subproject = "bad_login"
-        record.portal = api.portal.get().getId()
-        return True
-
-
 class RedirectLogin(LoginForm):
     """This is the Plone default login page. SSO sites do not use it."""
 
@@ -38,22 +27,21 @@ class RedirectLogin(LoginForm):
 
 
 class SsoLogout(BrowserView):
+    @property
     def sso(self):
         return getUtility(ISingleSignonUtility)
 
     def __call__(self):
-        return
-        # TODO - do not use for no-session. For session, delete cookie
-        # self.context.restrictedTraverse("browser_id_manager").flushBrowserIdCookie()
-        # for cookie in self.request.cookies:
-        #     self.request.response.setCookie(
-        #         cookie,
-        #         self.request.cookies[cookie],
-        #         path="/",
-        #         expires="Thu, 01 Jan 1970 00:00:00 GMT",
-        #     )
+        self.context.restrictedTraverse("browser_id_manager").flushBrowserIdCookie()
+        for cookie in self.request.cookies:
+            self.request.response.setCookie(
+                cookie,
+                self.request.cookies[cookie],
+                path="/",
+                expires="Thu, 01 Jan 1970 00:00:00 GMT",
+            )
 
-        # self.request.response.redirect(self.sso().get_url_logout(request=self.request))
+        self.request.response.redirect(self.sso.get_url_logout(request=self.request))
 
 
 @implementer(IPublishTraverse)
@@ -67,6 +55,9 @@ class SsoLinkaccount(BrowserView):
         return self
 
     def __call__(self):
+        if not api.user.is_anonymous():
+            # most likely a re-click or a tester
+            return self.invalid_key()
         alsoProvides(self.request, IDisableCSRFProtection)
         sso = getUtility(ISingleSignonUtility)
         try:
@@ -78,21 +69,25 @@ class SsoLinkaccount(BrowserView):
         usr = api.user.get(userid=user_id)
         is_relink = usr and NOT_LINKED not in usr.getUserName()
         login_name = sso.get_login_from_request(self.request)
-        email = self.request.get("HTTP_SHIBEMAIL")
+
+        email = self.request.get(sso.get_setting("shib_header_email"))
 
         if login_name and email:
             pw_tool = api.portal.get_tool("portal_password_reset")
             try:
                 pw_tool.verifyKey(key)
-                link_key = sso.generate_key(user_id)
-                pw_tool.resetPassword(user_id, key, link_key)
+                password = sso.generate_password(user_id)  # random, unknown password
+                pw_tool.resetPassword(user_id, key, password)
             except InvalidRequestError:
                 return self.invalid_key()
 
             try:
                 sso.set_login_name(user_id, login_name)
+            except ValueError:  # likely duplicate
+                return self.disallowed()
+            else:
                 sso.send_portal_link(email)
-                usr = api.user.get(userid=user_id)  # we must reinstatiate after change
+                usr = api.user.get(userid=user_id)  # we must reinstantiate after change
                 if is_relink:
                     plone_view = getMultiAdapter((self.context, self.request), name="plone")
                     sso.notify_relinked(usr, email, plone_view)
@@ -101,12 +96,6 @@ class SsoLinkaccount(BrowserView):
                         "User account IdP updated",
                         extra={"actor": usr.getId(), "principal": usr.getId()},
                     )
-                # member = api.user.get(userid=user_id)
-                # do we need to do this here, or will login get it?
-                # sso.update_member_from_request(self.request, member)
-            except ValueError:  # likely duplicate
-                # I don't know why we need this but https://www.squishlist.com/ims/plone/67528/#comment-945834
-                return self.disallowed()
             return self.success()
         else:
             return ViewPageTemplateFile("templates/linkaccount_anonymous.pt")(self)
@@ -137,21 +126,21 @@ class LoginUrl(BrowserView):
     def __call__(self):
         acl = api.portal.get_tool("acl_users")
         if "ims_sso_plugin" not in acl.objectIds():
-            return self.portal_url
+            return api.portal.get().absolute_url()
         login_url = acl.ims_sso_plugin.login_url(self.request.ACTUAL_URL)
-        # this is ugly and probably should be handled by the challenge plugin instead
-        # trying to make it not redirect to an unauthorized page after they log in
-        if "target=" in login_url and self.request.get("came_from"):
-            return login_url.split("target=")[0] + "target=" + self.request["came_from"]
-        else:
-            return login_url
+        # stops loop if they try to login to an unauth page
+        # if "target=" in login_url and self.request.get("came_from"):
+        #     return login_url.split("target=")[0] + "target=" + self.request["came_from"]
+        # else:
+        return login_url
 
 
 class LoginCondition(BrowserView):
     def __call__(self):
         if not api.user.is_anonymous():  # sanity fallback
             return False
-        return not [c for c in list(self.request.cookies.keys()) if "shibsession" in c]
+        sso = getUtility(ISingleSignonUtility)
+        return not sso.is_shibboleth_authenticated(self.request)
 
 
 class LogoutUrl(BrowserView):
@@ -162,22 +151,21 @@ class LogoutUrl(BrowserView):
 class RequireLoginView(BrowserView):
     def __call__(self, *args, **kw):
 
-        portal_state = getMultiAdapter(
-            (self.context, self.request),
-            name="plone_portal_state",
-        )
-        portal = portal_state.portal()
-
         utility = getUtility(ISingleSignonUtility)
 
-        if portal_state.anonymous():
-            # logged in through SSO, but anonymous to this site
-            if utility.no_challenge_header(self.request):
-                return getMultiAdapter((self.context, self.request), name="unauthorized")()
-            else:
-                return getMultiAdapter((self.context, self.request), name="unauthorized_anonymous")()
+        if utility.is_plone_authenticated():
+            return api.content.get_view(
+                context=api.portal.get(), request=self.request, name="insufficient-privileges"
+            )()
         else:
-            return getMultiAdapter((portal, self.request), name="insufficient-privileges")()
+            if utility.is_shibboleth_authenticated(self.request):
+                return api.content.get_view(
+                    context=self.context, request=self.request, name="unauthorized_shib_authenticated"
+                )()
+            else:
+                return api.content.get_view(
+                    context=self.context, request=self.request, name="unauthorized_shib_unauthenticated"
+                )()
 
 
 class RequestReactivation(BrowserView):
@@ -186,11 +174,10 @@ class RequestReactivation(BrowserView):
         CheckAuthenticator(self.request)
 
         util = getUtility(IReactivationUtility)
-        _key, expiry = util.request_reactivation()
-        expiry = api.portal.get_tool("translation_service").ulocalized_time(expiry, long_format=1)
-
         portal = api.portal.get()
         portal_url = portal.absolute_url()
+
+        _key = util.request_reactivation()
         if not _key:
             api.portal.show_message(
                 message="An activation key could not be obtained, contact the site administrator",
@@ -198,6 +185,9 @@ class RequestReactivation(BrowserView):
             )
             self.request.response.redirect(portal_url)
             return
+        _key, expiry = _key
+        expiry = api.portal.get_tool("translation_service").ulocalized_time(expiry, long_format=1)
+
         reg_link = f"{portal_url}/reactivate_user/{_key}"
         portal_title = api.portal.get_registry_record("plone.site_title")
         msg = (

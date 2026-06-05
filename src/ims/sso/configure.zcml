@@ -13,42 +13,18 @@
       />
 
   <include package=".browser" />
+  <include package=".controlpanels" />
   <include package=".mailing" />
+  <include package=".upgrades" />
+
   <include file="profiles.zcml" />
-  <include file="upgrades.zcml" />
-
-  <utility
-      factory=".utility.SingleSignonUtility"
-      provides=".interfaces.ISingleSignonUtility"
-      />
-
-  <utility
-      factory=".utility.MailTemplatesUtility"
-      provides="ims.sso.interfaces.IMailTemplatesUtility"
-      />
-
-  <utility
-      factory=".utility.ReactivationUtility"
-      provides=".interfaces.IReactivationUtility"
-      />
+  <include file="events.zcml" />
+  <include file="utilities.zcml" />
+  <include file="vocabulary.zcml" />
 
   <browser:resourceDirectory
       name="ims.sso"
       directory="static"
       />
 
-
-  <subscriber
-      for=".events.IUserRelinkedEvent"
-      handler=".events.user_relinked"
-      />
-
-  <utility
-      name="ims.sso.mail_idps"
-      component=".interfaces.mail_idps"
-      />
-  <utility
-      name="ims.sso.active_status"
-      component=".interfaces.active_status"
-      />
 </configure>

@@ -18,14 +18,13 @@ from zope.annotation.interfaces import IAnnotations
 from zope.component import getUtility
 from zope.globalrequest import getRequest
 from zope.interface.declarations import alsoProvides, implementer
-from zope.interface.interfaces import ComponentLookupError
 
 from .configs import (
     ACTIVE_STATUS,
     AUTHENTICATED_KEY,
     LOGIN_UPDATE_THRESHOLD,
 )
-from .interfaces import ISettings
+from .interfaces import ISingleSignonUtility, ISSOSettings
 from .utility import is_null
 
 logger = logging.getLogger("ims.sso")
@@ -55,16 +54,6 @@ class ImsSsoPlugin(BasePlugin):
         return f"{api.portal.get().absolute_url()}/@@login?came_from={current_url}"
 
     def challenge(self, request, response):
-        from .interfaces import ISingleSignonUtility
-
-        # this import needs to be here to prevent circular import attempts
-        try:
-            sso = getUtility(ISingleSignonUtility)
-        except ComponentLookupError:  # this is also run on startup?
-            return None
-        if sso.no_challenge_header(request):
-            return False
-
         url = self.login_url(request.ACTUAL_URL)
         if url:
             response.redirect(url, lock=True)
@@ -93,12 +82,9 @@ class ImsSsoPlugin(BasePlugin):
                     annotations[AUTHENTICATED_KEY] = user.getId()
                     return None
 
-                if member is None:  # happens only when authenticate_everybody is off
-                    return None
-
                 mtool.createMemberArea(member_id=user_id)
                 domain = urlparse(credentials["idp"]).netloc
-                if domain not in api.portal.get_registry_record(interface=ISettings, name="non_update_domains"):
+                if domain not in api.portal.get_registry_record(interface=ISSOSettings, name="non_update_domains"):
                     self.update_user(
                         username=user_id,
                         first_name=credentials.get("first_name"),
@@ -115,7 +101,6 @@ class ImsSsoPlugin(BasePlugin):
 
     def update_user(self, username, first_name, last_name, email=None):
         """Only update if there is a change in fullname/first_name/last_name/email"""
-        # TODO - if using a session, this should all be moved to the session creation
         props = {}
         member = api.user.get(userid=username)
         now = DateTime()
@@ -159,22 +144,21 @@ class ImsSsoPlugin(BasePlugin):
 
     @property
     def shib_header_first_name(self):
-        return api.portal.get_registry_record(interface=ISettings, name="shib_header_first_name")
+        return api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_first_name")
 
     @property
     def shib_header_last_name(self):
-        return api.portal.get_registry_record(interface=ISettings, name="shib_header_last_name")
+        return api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_last_name")
 
     @property
     def shib_header_email(self):
-        return api.portal.get_registry_record(interface=ISettings, name="shib_header_email")
+        return api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_email")
 
     @property
     def shib_header_idp(self):
-        return api.portal.get_registry_record(interface=ISettings, name="shib_header_idp")
+        return api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_idp")
 
     def extractCredentials(self, request):
-        from .interfaces import ISingleSignonUtility
 
         sso = getUtility(ISingleSignonUtility)
 

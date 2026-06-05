@@ -1,33 +1,27 @@
 import plone.api
 from DateTime import DateTime
+from plone.api.portal import send_email
 from plone.autoform.form import AutoExtensibleForm
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from z3c.form import button, form
 from zope.component import getUtility
 from zope.event import notify
 
-from ..configs import _
+from ..configs import NOT_LINKED, _
 from ..events import UserRelinkedEvent
 from ..interfaces import IMailTemplatesUtility, IMassRelink, ISingleSignonUtility
 from ..utility import registration_subject
 
-try:
-    from ims.notifications.api import send_email
-except ImportError:
-    from plone.api.portal import send_email
-
 
 class MassRelink(AutoExtensibleForm, form.Form):
+    """Sends out a reminder email to all unlinked users. Typical usage would be after mass registration on a new site."""
+
     ignoreContext = True
     schema = IMassRelink
     template = ViewPageTemplateFile("mass_relink.pt")
 
-    @button.buttonAndHandler(_("Send It"))
-    def email_unlinked(self, action):
-        _, errors = self.extractData()
-        if errors:
-            self.status = self.formErrorsMessage
-            return
+    @button.buttonAndHandler(_("Send It"), name="send")
+    def email_unlinked(self, action) -> None:
         portal = plone.api.portal.get()
         portal_title = plone.api.portal.get_registry_record("plone.site_title")
         reset = plone.api.portal.get_tool("portal_password_reset")
@@ -75,10 +69,10 @@ class MassRelink(AutoExtensibleForm, form.Form):
                 immediate=False,
             )
 
-        plone.api.portal.show_message(_("Emails sent"), request=self.request, type="info")
+        plone.api.portal.show_message(message=_("msg_email", default="Emails sent"), request=self.request, type="info")
         self.request.response.redirect(portal.absolute_url())
 
-    def duplicates(self):
+    def duplicates(self) -> list[str]:
         """Warn about multiple users with the same email address"""
         emails = []
         dups = []
@@ -88,16 +82,16 @@ class MassRelink(AutoExtensibleForm, form.Form):
             emails.append(user["email"])
         return dups
 
-    def unlinked_user_data(self):
+    def unlinked_user_data(self) -> list[dict]:
         """Get name and email for all unlinked users"""
         data = []
         for user in plone.api.user.get_users():
-            if "not-linked" in user.getUserName():
+            if NOT_LINKED in user.getUserName():
                 email = user.getProperty("email")
                 title = user.getProperty("fullname")
                 data.append({"title_or_id": title or user.getId(), "email": email})
         return data
 
-    def unlinked_users(self):
+    def unlinked_users(self) -> list[str]:
         """Get unlinked users"""
-        return [user.getId() for user in plone.api.user.get_users() if "not-linked" in user.getUserName()]
+        return [user.getId() for user in plone.api.user.get_users() if NOT_LINKED in user.getUserName()]

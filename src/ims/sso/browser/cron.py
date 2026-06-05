@@ -17,7 +17,7 @@ class PeriodicTasks(BrowserView):
         alsoProvides(self.request, IDisableCSRFProtection)
         sso = getUtility(ISingleSignonUtility)
         react = getUtility(IReactivationUtility)
-        sso.purge_expired()
+        sso.purge_unlinked()
         sso.disable_user_accounts()
-        react.purge_annotations()
+        react.purge_activation_keys()
         return "User accounts updated."

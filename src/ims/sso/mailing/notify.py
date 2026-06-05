@@ -53,7 +53,7 @@ class RegisteredNotify(BrowserView):
         return templater.mail_form(template=notify_form, params=params)
 
 
-class MailPassword(RegisteredNotify):
+class MailRelink(RegisteredNotify):
     def encoded_mail_sender(self):
         """from Products.CMFPlone.browser.password_reset"""
         registry = getUtility(IRegistry)

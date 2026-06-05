@@ -4,13 +4,7 @@
     i18n_domain="ims.sso"
     >
 
-  <browser:page
-      name="sso-settings"
-      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
-      class=".controlpanel.SsoSettingsControlPanelView"
-      permission="ims.sso.BasicSettings"
-      />
-
+  <!-- Plone override -->
   <browser:page
       name="usergroup-userprefs"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
@@ -27,6 +21,7 @@
       permission="cmf.ManagePortal"
       />
 
+  <!-- Plone override -->
   <browser:page
       name="new-user"
       for="plone.app.layout.navigation.interfaces.INavigationRoot"
@@ -74,17 +69,17 @@
       permission="zope.Public"
       />
   <browser:page
-      name="unauthorized"
+      name="unauthorized_shib_unauthenticated"
       for="zope.interface.Interface"
       class=".unauthorized.Unauthorized"
-      template="templates/unauthorized.pt"
+      template="templates/unauthorized_shib_unauthenticated.pt"
       permission="zope.Public"
       />
   <browser:page
-      name="unauthorized_anonymous"
+      name="unauthorized_shib_authenticated"
       for="zope.interface.Interface"
       class=".unauthorized.Unauthorized"
-      template="templates/unauthorized_anonymous.pt"
+      template="templates/unauthorized_shib_authenticated.pt"
       permission="zope.Public"
       />
   <browser:page
@@ -108,14 +103,6 @@
       layer="..interfaces.IBrowserLayer"
       />
 
-  <browser:page
-      name="mail_relink_template"
-      for="*"
-      class="..mailing.notify.MailPassword"
-      permission="zope.Public"
-      layer="..interfaces.IBrowserLayer"
-      />
-
 
   <browser:page
       name="require_login"
@@ -127,9 +114,9 @@
 
 
   <browser:viewlet
-      name="authenticated_unauthorized"
+      name="sso_warnings"
       manager="plone.app.layout.viewlets.interfaces.IAboveContent"
-      class=".viewlets.AuthenticatedUnauthorizedViewlet"
+      class=".viewlets.SsoWarningsViewlet"
       permission="zope.Public"
       layer="..interfaces.IBrowserLayer"
       />

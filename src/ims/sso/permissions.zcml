@@ -22,6 +22,10 @@
       id="ims.sso.CanChangeSettings"
       title="ims.sso: can change settings"
       />
+  <permission
+      id="ims.sso.NotificationSettings"
+      title="ims.sso: notification settings"
+      />
 
   <permission
       id="ims.sso.BasicSettings"

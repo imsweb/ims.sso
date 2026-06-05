@@ -4,14 +4,15 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from zope.annotation.interfaces import IAnnotations
 from zope.component import getUtility
 
-from ..configs import AUTHENTICATED_KEY, LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN
-from ..interfaces import ISettings, ISingleSignonUtility
+from ..configs import AUTHENTICATED_KEY
+from ..controlpanels.sso import ISSOSettings
+from ..interfaces import ISingleSignonUtility
 
 
-class AuthenticatedUnauthorizedViewlet(ViewletBase):
+class SsoWarningsViewlet(ViewletBase):
     """User is authenticated with SSO but has no active account here"""
 
-    index = ViewPageTemplateFile("templates/authenticated_unauthorized.pt")
+    index = ViewPageTemplateFile("templates/warnings.pt")
 
     @property
     def sso(self):
@@ -34,7 +35,7 @@ class AuthenticatedUnauthorizedViewlet(ViewletBase):
     def show_warning(self):
         """Show warning that the user is authenticated but unauthorized. Allows opt out by site"""
         try:
-            registry_setting = api.portal.get_registry_record(interface=ISettings, name="show_auth_unauth")
+            registry_setting = api.portal.get_registry_record(interface=ISSOSettings, name="show_auth_unauth")
         except api.exc.InvalidParameterError:
             return True
         else:
@@ -52,17 +53,19 @@ class AuthenticatedUnauthorizedViewlet(ViewletBase):
         """General alert section for auth/unauth and/or reactivation"""
         # allow sites to opt out with registry setting
         if self.is_inactive() or self.show_warning():
-            for _view in api.portal.get_registry_record(interface=ISettings, name="unauth_ignored_views"):
+            for _view in api.portal.get_registry_record(interface=ISSOSettings, name="unauth_ignored_views"):
                 if _view in self.request["ACTUAL_URL"].split("/"):
                     return False
             if not str(self.request.response.status).startswith("2"):
                 return False
-            return self.sso.no_challenge_header(self.request) and api.user.is_anonymous() and not self.logingov()
+            return self.sso.has_user_header(self.request) and api.user.is_anonymous() and not self.logingov()
 
     def logingov(self):
         # TODO - this needs to be moved to ims.users only
         #        override this as a browserlayer view there
-        for _view in api.portal.get_registry_record(interface=ISettings, name="unauth_ignored_views"):
+        LOGIN_DOT_GOV_IDP_DOMAIN = "auth.ncats.nih.gov"
+        LOGIN_DOT_GOV_DEV_IDP_DOMAIN = "a-ci.ncats.io"
+        for _view in api.portal.get_registry_record(interface=ISSOSettings, name="unauth_ignored_views"):
             if _view in self.request["ACTUAL_URL"].split("/"):
                 return False
 
@@ -72,7 +75,7 @@ class AuthenticatedUnauthorizedViewlet(ViewletBase):
         if api.user.is_anonymous() and real_login_name:
             idp, _ = sso.extract_idp_login(real_login_name)
             if idp in login_gov_domains:
-                shib_header_email = api.portal.get_registry_record(interface=ISettings, name="shib_header_email")
+                shib_header_email = api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_email")
                 email = self.request.environ.get(shib_header_email)
                 for usr in api.user.get_users():
                     # user is already converted but still anon - presumably because of status
@@ -84,8 +87,10 @@ class AuthenticatedUnauthorizedViewlet(ViewletBase):
 
     def login_info(self):
         sso = getUtility(ISingleSignonUtility)
-        shib_header_email = api.portal.get_registry_record(interface=ISettings, name="shib_header_email")
+        shib_header_email = api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_email")
         real_login_name = sso.get_login_from_request(self.request)
+        LOGIN_DOT_GOV_IDP_DOMAIN = "auth.ncats.nih.gov"
+        LOGIN_DOT_GOV_DEV_IDP_DOMAIN = "a-ci.ncats.io"
         if real_login_name:
             idp, idp_login_name = sso.extract_idp_login(real_login_name)
             if idp in [LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN]:

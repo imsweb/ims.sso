@@ -1,0 +1,12 @@
+from plone import api  # noqa
+
+
+class TestUtility:
+    def test_purge_expired(self):
+        raise NotImplementedError
+
+    def test_disable_accounts(self):
+        raise NotImplementedError
+
+    def test_purge_keys(self):
+        raise NotImplementedError
