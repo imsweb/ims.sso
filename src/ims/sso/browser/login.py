@@ -1,4 +1,3 @@
-from ims.graylog.subscribers import get_logger
 from plone import api
 from plone.protect import CheckAuthenticator, PostOnly
 from plone.protect.interfaces import IDisableCSRFProtection
@@ -8,10 +7,12 @@ from Products.Five import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from zope.annotation.interfaces import IAnnotations
 from zope.component import getMultiAdapter, getUtility
+from zope.event import notify
 from zope.interface.declarations import alsoProvides, implementer
 from zope.publisher.interfaces import IPublishTraverse
 
 from ..configs import AUTHENTICATED_KEY, NOT_LINKED, _
+from ..events import IUserIdpUpdated
 from ..interfaces import IReactivationUtility, ISingleSignonUtility
 
 
@@ -91,11 +92,7 @@ class SsoLinkaccount(BrowserView):
                 if is_relink:
                     plone_view = getMultiAdapter((self.context, self.request), name="plone")
                     sso.notify_relinked(usr, email, plone_view)
-                    logger = get_logger()
-                    logger.info(
-                        "User account IdP updated",
-                        extra={"actor": usr.getId(), "principal": usr.getId()},
-                    )
+                    notify(IUserIdpUpdated(usr))
             return self.success()
         else:
             return ViewPageTemplateFile("templates/linkaccount_anonymous.pt")(self)

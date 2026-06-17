@@ -15,6 +15,15 @@ class UserRelinkedEvent(PASEvent):
     """User relink intiated"""
 
 
+class IUserIdpUpdated(IPASEvent):
+    """User relink initiated"""
+
+
+@implementer(IUserIdpUpdated)
+class UserIdpUpdated(PASEvent):
+    """User idp updated"""
+
+
 def user_relinked(user):
     """user was relinked, reset the created_date. This resets the unlinked expiration mechanism"""
     user = plone.api.user.get(userid=user.principal["id"])
