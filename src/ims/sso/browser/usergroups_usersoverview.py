@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime
+from datetime import date
 
 import plone.api
 from Acquisition import aq_inner
@@ -19,6 +19,7 @@ from ..configs import (
     ACTIVE_STATUS,
     DISABLED_STATUS,
     INACTIVE_STATUS,
+    NOT_LINKED,
     _,
 )
 from ..errors import NoSSOMailTemplatesException
@@ -28,26 +29,15 @@ from ..utility import notify_activated
 
 
 class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
-    def __call__(self):
-        if not self.request.get("status"):
-            self.request["status"] = "active"  # make the default state be active
-        elif self.request.form.get("form.button.FindAll", None) is not None:
-            self.request["status"] = "all"  # ignore form value and reset
-        return super().__call__()
-
     @property
     def sso(self):
         return getUtility(ISingleSignonUtility)
 
-    def can_change_settings(self):
-        return plone.api.user.has_permission("ims.sso: can change settings")
-
-    def can_manage_sso(self):
-        return plone.api.user.has_permission("ims.sso: manage control panel")
+    @property
+    def submitted(self):
+        return bool(self.request.get("submitted"))
 
     def can_change_roles(self):
-        if self.request.get("hide_roles", None) is not None:
-            return False
         return plone.api.user.has_permission("ims.sso: can change roles")
 
     def uses_expiry(self):
@@ -69,18 +59,18 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
         base_roles = super().portal_roles
         try:
             from ims.groupspace.utils import group_role_names
-        except ImportError:
+        except ImportError:  # pragma: no cover
             return base_roles
         else:
             _group_role_names = group_role_names()
             return [role for role in base_roles if role not in _group_role_names]
 
-    def print_expiry(self, date):
+    def print_expiry(self, created_date: date):
         """get a text string of how many days until removal"""
-        curr = datetime.now().date()
+        curr = date.today()
 
         try:
-            days = self.expiry_days() - (curr - date).days
+            days = self.expiry_days() - (curr - created_date).days
         except TypeError:  # date not set
             return " - creation date not set"
         plural = (days > 1 and "s") or ""
@@ -92,10 +82,10 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
     def doSearch(self, searchString):
         """append some more info to each usr dict"""
         form = self.request.form
-        find_all = form.get("form.button.FindAll", None) is not None or self.request.get("status") == "all"
-        no_search = (
-            not self.request.get("active") and not self.request.get("inactive") and not self.request.get("disabled")
-        )
+        find_all = form.get("form.button.FindAll", None)
+        active_status = self.request.get("active_status", [])
+        if not self.submitted:
+            active_status = ["active"]  # default if all unchecked
 
         results = []
         if not searchString or len(searchString.split()) == 1:  # no search string or one word was provided
@@ -110,20 +100,7 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
         for usr in results:
             user_account = plone.api.user.get(userid=usr["id"])
             if not find_all:
-                if no_search:
-                    # default to active
-                    self.request.set("active", "active")
-                    if self.request["active"] == user_account.getProperty("active"):
-                        pass
-                    else:
-                        continue
-                elif (
-                    (self.request.get("active") and self.request["active"] == user_account.getProperty("active"))
-                    or (self.request.get("inactive") and self.request["inactive"] == user_account.getProperty("active"))
-                    or (self.request.get("disabled") and self.request["disabled"] == user_account.getProperty("active"))
-                ):
-                    pass
-                else:
+                if user_account.getProperty("active") not in active_status:
                     continue
             idp, login = self.sso.extract_idp_login(user_account.getUserName())
             usr["idp"] = self.sso.get_idp_from_domain(idp)
@@ -137,8 +114,8 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
             if not usr["service"]:
                 usr["sort_name"] = usr["last_name"] + usr["first_name"] + usr["id"]
             else:
-                usr["sort_name"] = "zz" + usr["id"]
-            usr["linked"] = idp != "not.linked"
+                usr["sort_name"] = "zz" + usr["id"]  # make these sort to the bottom. We assume no names start with zz
+            usr["linked"] = idp != NOT_LINKED
             usr["can_deactivate"] = plone.api.user.has_permission("ims.sso: deactivate")
             if usr["roles"]["Manager"]["explicit"] or (
                 usr["roles"]["Manager"]["inherited"] and not self.is_zope_manager
@@ -167,11 +144,7 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
             )
             if not usr["linked"]:
                 usr["expiry"] = self.print_expiry(user_account.getProperty("created_date"))
-            try:
-                usr["active"] = user_account.getProperty("active")
-            except ValueError as err:
-                plone.api.portal.show_message(message="You must run the upgrade step for ims.sso.", type="error")
-                raise ValueError from err
+            usr["active"] = user_account.getProperty("active")
             curated.append(usr)
 
         return curated
@@ -214,10 +187,10 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
 
             for user in users:
                 # Don't bother if the user will be deleted anyway
-                if user.id in delete:
+                if user["id"] in delete:
                     continue
 
-                member = plone.api.user.get(userid=user.id)
+                member = plone.api.user.get(userid=user["id"])
                 active_status = user.get("active")
                 can_deactivate = (
                     "Manager" not in member.getRoles() and plone.api.user.has_permission("ims.sso: deactivate")
@@ -249,9 +222,9 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
                     # for sso we don't really reset the password, we resend steps to link account
                     try:
                         plone.api.portal.get_tool("portal_registration")
-                        registration.mailPassword(user.id, self.request)
+                        registration.mailPassword(user["id"], self.request)
                         notify(UserRelinkedEvent(user))
-                        users_with_reset_passwords.append(member.getProperty("fullname") or user.id)
+                        users_with_reset_passwords.append(member.getProperty("fullname") or user["id"])
                     except NoSSOMailTemplatesException:
                         plone.api.portal.show_message(
                             _(
@@ -268,7 +241,7 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
                     if not self.is_zope_manager and ("Manager" in roles) != ("Manager" in current_roles):
                         # don't allow adding or removing the Manager role
                         raise Forbidden
-                    acl_users.userFolderEditUser(user.id, pw, roles, member.getDomains(), REQUEST=context.REQUEST)
+                    acl_users.userFolderEditUser(user["id"], pw, roles, member.getDomains(), REQUEST=context.REQUEST)
 
             if active_change:
                 plone.api.portal.show_message(
@@ -312,26 +285,24 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
 
     def active_search_options(self):
         opts = []
-        find_all = self.request.form.get("form.button.FindAll", None) is not None or self.request.get("status") == "all"
-        no_search = (
-            not self.request.get("active") and not self.request.get("inactive") and not self.request.get("disabled")
-        )
+        search = self.request.get("active_status", [])
+        if not self.submitted:
+            search = ["active"]
+
         for opt in getUtility(IVocabularyFactory, name="ims.sso.active_status")(self):
             opts.append(
                 {
                     "value": opt.value,
                     "title": opt.title,
-                    "showAll": find_all,
-                    "noSearch": no_search,
-                    "selectActive": self.request.get("active") == opt.value and not find_all,
-                    "selectInactive": self.request.get("inactive") == opt.value and not find_all,
-                    "selectDisabled": self.request.get("disabled") == opt.value and not find_all,
+                    "selected": opt.value in search,
                 }
             )
 
         return opts
 
     def datatables(self):
+        if not self.searchResults:
+            return None
         len_cols = 7  # I guess hard code this?
         if self.can_change_roles():
             len_cols += len(self.portal_roles)

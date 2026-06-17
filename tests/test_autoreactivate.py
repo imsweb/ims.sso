@@ -51,8 +51,8 @@ class TestAutoReactivation:
 
     def get_status_message(self, view):
         """Fetch status message directly"""
-        sm = IStatusMessage(view.request)
-        return sm.show()[-1].message
+        sm = IStatusMessage(view.request).show()
+        return sm[-1].message if sm else ""
 
     def test_generate_key(self, http_request, sso):
         util = getUtility(IReactivationUtility)
@@ -180,3 +180,9 @@ class TestAutoReactivation:
     # def test_request_reactivation_view(self):
     #     # browser.login.RequestReactivation
     #     raise NotImplementedError
+
+    def test_invalid_request_key_authed_user(self, portal, http_request, sso):
+        view = api.content.get_view(context=portal, name="reactivate_user")
+        view.publishTraverse(view.request, "foobar")
+        view()
+        assert not self.get_status_message(view)

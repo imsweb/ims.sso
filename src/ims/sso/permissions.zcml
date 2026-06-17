@@ -4,11 +4,6 @@
     >
 
   <permission
-      id="ims.sso.ManageControlPanel"
-      title="ims.sso: manage control panel"
-      />
-
-  <permission
       id="ims.sso.AuthorizedView"
       title="ims.sso: authorized view"
       />
@@ -18,10 +13,6 @@
       title="ims.sso: mass relink"
       />
 
-  <permission
-      id="ims.sso.CanChangeSettings"
-      title="ims.sso: can change settings"
-      />
   <permission
       id="ims.sso.NotificationSettings"
       title="ims.sso: notification settings"

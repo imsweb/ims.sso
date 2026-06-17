@@ -142,10 +142,10 @@ class IMailTemplates(Interface):
     """An interface for email forms"""
 
     def registered_notify(self):
-        pass
+        pass  # pragma: no cover
 
     def mail_relink(self):
-        pass
+        pass  # pragma: no cover
 
 
 class IUserExpiryUtility(Interface):

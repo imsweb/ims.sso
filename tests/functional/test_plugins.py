@@ -79,16 +79,20 @@ class TestPlugins:
         assert usr.getProperty("email") == "noreply@imsweb.com"
 
     def test_update_user_lname_only(self, plugin):
+        """Test the condition where we only have last_name. This only matters for fullname"""
         usr = api.user.get(username=test_user_id)
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
         # control
         assert usr.getProperty("last_name") != "Wohnlich"
         assert usr.getProperty("email") != "noreply@imsweb.com"
+        creds = CREDENTIALS.copy()
+        del creds["first_name"]
 
-        plugin.authenticateCredentials(CREDENTIALS)
+        plugin.authenticateCredentials(creds)
         transaction.commit()
         usr = api.user.get(username=test_user_id)
         assert usr.getProperty("last_name") == "Wohnlich"
+        assert usr.getProperty("fullname") == "Wohnlich"
         assert usr.getProperty("email") == "noreply@imsweb.com"
 
     def test_update_user_non_update(

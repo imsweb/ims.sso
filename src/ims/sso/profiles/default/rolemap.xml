@@ -2,11 +2,6 @@
 <rolemap>
   <permissions>
     <permission acquire="True"
-                name="ims.sso: manage control panel"
-    >
-      <role name="Manager" />
-    </permission>
-    <permission acquire="True"
                 name="ims.sso: authorized view"
     >
       <role name="Authenticated" />

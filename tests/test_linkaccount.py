@@ -108,7 +108,7 @@ class TestPlugins:
         pwrt = api.portal.get_tool("portal_password_reset")
 
         api.user.create(email="noreply@imwweb.com", username="dup")
-        sso.set_login_name(user_id="dup", login_name="wohnliche@imsweb.com")
+        sso.set_login_name(user_id="dup", login_name="wohnliche@adfs.omni.imsweb.com")
 
         new_member_id = "userX"
         api.user.create(email="noreply@imsweb.com", username=new_member_id)

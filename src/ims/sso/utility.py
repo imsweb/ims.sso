@@ -423,6 +423,15 @@ class ReactivationUtility:
             for userid in to_del:
                 del rec[userid]
 
+    def current_user_status(self):
+        """Get the `active` value for the user using the user id in annotations."""
+        annotations = IAnnotations(getRequest())
+        if AUTHENTICATED_KEY in annotations:
+            userid = annotations[AUTHENTICATED_KEY]
+            user = api.user.get(userid)
+            return user.getProperty("active")
+        return "unknown"
+
 
 def notify_activated(user: MemberData) -> None:
     """Notify a user that has been reactivated"""

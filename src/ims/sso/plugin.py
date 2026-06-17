@@ -24,7 +24,7 @@ from .configs import (
     AUTHENTICATED_KEY,
     LOGIN_UPDATE_THRESHOLD,
 )
-from .interfaces import ISingleSignonUtility, ISSOSettings
+from .interfaces import ISingleSignonUtility
 from .utility import is_null
 
 logger = logging.getLogger("ims.sso")
@@ -52,6 +52,10 @@ class ImsSsoPlugin(BasePlugin):
     @staticmethod
     def login_url(current_url):
         return f"{api.portal.get().absolute_url()}/@@login?came_from={current_url}"
+
+    @property
+    def sso(self):
+        return getUtility(ISingleSignonUtility)
 
     def challenge(self, request, response):
         url = self.login_url(request.ACTUAL_URL)
@@ -84,7 +88,7 @@ class ImsSsoPlugin(BasePlugin):
 
                 mtool.createMemberArea(member_id=user_id)
                 domain = urlparse(credentials["idp"]).netloc
-                if domain not in api.portal.get_registry_record(interface=ISSOSettings, name="non_update_domains"):
+                if domain not in self.sso.get_setting("non_update_domains"):
                     self.update_user(
                         username=user_id,
                         first_name=credentials.get("first_name"),
@@ -144,25 +148,22 @@ class ImsSsoPlugin(BasePlugin):
 
     @property
     def shib_header_first_name(self):
-        return api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_first_name")
+        return self.sso.get_setting("shib_header_first_name")
 
     @property
     def shib_header_last_name(self):
-        return api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_last_name")
+        return self.sso.get_setting("shib_header_last_name")
 
     @property
     def shib_header_email(self):
-        return api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_email")
+        return self.sso.get_setting("shib_header_email")
 
     @property
     def shib_header_idp(self):
-        return api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_idp")
+        return self.sso.get_setting("shib_header_idp")
 
     def extractCredentials(self, request):
-
-        sso = getUtility(ISingleSignonUtility)
-
-        login = sso.get_login_from_request(request)
+        login = self.sso.get_login_from_request(request)
         if not login:
             return None
 

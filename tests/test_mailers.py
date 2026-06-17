@@ -82,12 +82,12 @@ class TestMailers:
         assert "If you do not have a MyIdp account" in msg
 
     def test_default_template_registered_notify(self):
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
         msg = self.utility.registered_notify()
         assert msg
 
     def test_default_template_mail_relink(self):
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
         msg = self.utility.mail_relink()
         assert msg
 

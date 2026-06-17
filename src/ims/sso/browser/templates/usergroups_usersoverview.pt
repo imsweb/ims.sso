@@ -132,59 +132,25 @@
                         <tal:opts repeat="opt view/active_search_options">
                           <div class="badge bg-light text-dark me-1 border">
                             <div class="form-check pt-1"
-                                 id="status"
+                                 id="status-${opt/value}"
                             >
                               <input class="form-check-input"
-                                     id="search${opt/title}Users"
+                                     id="search-users-${opt/value}"
                                      checked
-                                     name="${opt/value}"
+                                     name="active_status:list"
                                      type="checkbox"
                                      value="${opt/value}"
-                                     tal:condition="opt/selectActive"
+                                     tal:condition="opt/selected"
                               />
                               <input class="form-check-input"
-                                     id="search${opt/title}Users"
-                                     checked
-                                     name="${opt/value}"
+                                     id="search-users-${opt/value}"
+                                     name="active_status:list"
                                      type="checkbox"
                                      value="${opt/value}"
-                                     tal:condition="opt/selectInactive"
-                              />
-                              <input class="form-check-input"
-                                     id="search${opt/title}Users"
-                                     checked
-                                     name="${opt/value}"
-                                     type="checkbox"
-                                     value="${opt/value}"
-                                     tal:condition="opt/selectDisabled"
-                              />
-                              <input class="form-check-input"
-                                     id="search${opt/title}Users"
-                                     name="${opt/value}"
-                                     type="checkbox"
-                                     value="${opt/value}"
-                                     tal:condition="python:not opt['selectActive']
-                                                            and not opt['selectInactive']
-                                                            and not opt['selectDisabled']"
-                              />
-                              <input class="form-check-input"
-                                     id="search${opt/title}Users"
-                                     checked
-                                     name="${opt/value}"
-                                     type="checkbox"
-                                     value="${opt/value}"
-                                     tal:condition="python: opt['noSearch'] and opt['value'] == 'active'"
-                              />
-                              <input class="form-check-input"
-                                     id="search${opt/title}Users"
-                                     checked
-                                     name="${opt/value}"
-                                     type="checkbox"
-                                     value="${opt/value}"
-                                     tal:condition="opt/showAll"
+                                     tal:condition="not:opt/selected"
                               />
                               <label class="form-check-label"
-                                     for="search${opt/title}Users"
+                                     for="search-users-${opt/value}"
                               >${opt/title}</label>
                             </div>
                           </div>
@@ -264,6 +230,7 @@
                 </div>
               </div>
 
+              <input type="hidden" name="submitted" value=1"/>
             </form>
             <form class="enableAutoFocus pat-formunloadalert"
                   id="users_manage"
@@ -275,7 +242,7 @@
                      type="hidden"
                      value="1"
               />
-              <table class="table table-responsive table-bordered table-hover text-center usergroup-table pat-datatables"
+              <table class="table table-responsive table-bordered table-hover text-center usergroup-table ${python:'pat-datatables' if portal_users else ''}"
                      id="users_manage_table"
                      data-pat-datatables="${view/datatables}"
               >
@@ -530,59 +497,25 @@
               <tal:opts repeat="opt view/active_search_options">
                 <div class="d-none">
                   <div class="form-check pt-1"
-                       id="status"
+                       id="manage-status"
                   >
-                    <input class="form-check-input"
-                           id="search${opt/title}Users"
-                           checked
-                           name="${opt/value}"
-                           type="checkbox"
-                           value="${opt/value}"
-                           tal:condition="opt/selectActive"
-                    />
-                    <input class="form-check-input"
-                           id="search${opt/title}Users"
-                           checked
-                           name="${opt/value}"
-                           type="checkbox"
-                           value="${opt/value}"
-                           tal:condition="opt/selectInactive"
-                    />
-                    <input class="form-check-input"
-                           id="search${opt/title}Users"
-                           checked
-                           name="${opt/value}"
-                           type="checkbox"
-                           value="${opt/value}"
-                           tal:condition="opt/selectDisabled"
-                    />
-                    <input class="form-check-input"
-                           id="search${opt/title}Users"
-                           name="${opt/value}"
-                           type="checkbox"
-                           value="${opt/value}"
-                           tal:condition="python:not opt['selectActive']
-                                        and not opt['selectInactive']
-                                        and not opt['selectDisabled']"
-                    />
-                    <input class="form-check-input"
-                           id="search${opt/title}Users"
-                           checked
-                           name="${opt/value}"
-                           type="checkbox"
-                           value="${opt/value}"
-                           tal:condition="python: opt['noSearch'] and opt['value'] == 'active'"
-                    />
-                    <input class="form-check-input"
-                           id="search${opt/title}Users"
-                           checked
-                           name="${opt/value}"
-                           type="checkbox"
-                           value="${opt/value}"
-                           tal:condition="opt/showAll"
-                    />
+                              <input class="form-check-input"
+                                     id="manage-users-${opt/value}"
+                                     checked
+                                     name="active_status:list"
+                                     type="checkbox"
+                                     value="${opt/value}"
+                                     tal:condition="opt/selected"
+                              />
+                              <input class="form-check-input"
+                                     id="manage-users-${opt/value}"
+                                     name="active_status:list"
+                                     type="checkbox"
+                                     value="${opt/value}"
+                                     tal:condition="not:opt/selected"
+                              />
                     <label class="form-check-label"
-                           for="search${opt/title}Users"
+                           for="manage-users-${opt/value}"
                     >${opt/title}</label>
                   </div>
                 </div>
@@ -621,6 +554,7 @@
               </div>
 
               <input tal:replace="structure context/@@authenticator/authenticator" />
+              <input type="hidden" name="submitted" value=1"/>
 
             </form>
           </div>

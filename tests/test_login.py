@@ -10,6 +10,7 @@ class TestLogin:
     def test_change_password(self, portal):
         view = api.content.get_view(context=portal, name="change-password")
         assert view.__name__ == "change-password"
+        view()
 
     def test_login_url(self, portal):
         view = api.content.get_view(context=portal, name="get_login_url")
