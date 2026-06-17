@@ -40,4 +40,10 @@ jobs:
         pip install .[test] pytest
     - name: Run unittests
       run: |
-        pytest
+        coverage run -m pytest
+        coverage html
+    - name: "Upload coverage data"
+      uses: actions/upload-artifact@v3
+      with:
+        name: covdata
+        path: htmlcov
