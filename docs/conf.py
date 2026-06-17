@@ -1,4 +1,4 @@
-from importlib_metadata import version as meta_version
+from importlib.metadata import version as meta_version
 
 project = "ims.sso"
 author = "Eric Wohnlich and Taina Dumay"
