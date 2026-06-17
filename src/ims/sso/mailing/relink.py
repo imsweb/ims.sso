@@ -14,7 +14,9 @@ from ..utility import registration_subject
 
 
 class MassRelink(AutoExtensibleForm, form.Form):
-    """Sends out a reminder email to all unlinked users. Typical usage would be after mass registration on a new site."""
+    """Sends out a reminder email to all unlinked users. Typical usage would be after mass registration on a
+    new site.
+    """
 
     ignoreContext = True
     schema = IMassRelink

@@ -227,7 +227,8 @@ class SingleSignonUtility:
     def disable_user_accounts(self) -> None:
         """Update user account active status based on days since activation/login
 
-        activation_date is a user property set on first activation, and updated on login through the IAuthenticateCredentials plugin
+        activation_date is a user property set on first activation, and updated on login through the
+        IAuthenticateCredentials plugin
 
         exceptions:
         - User property `service` can be set to True to skip this check
@@ -348,7 +349,7 @@ class ReactivationUtility:
         try:
             return datetime.datetime.now() >= expiry
         except TypeError:
-            return datetime.datetime.now(datetime.timezone.utc) >= expiry
+            return datetime.datetime.now(datetime.UTC) >= expiry
 
     def _validate(self, activation_key: str) -> bool:
         """Check that:
@@ -418,7 +419,7 @@ class ReactivationUtility:
                     if reactiv["expiry"] < datetime.datetime.now():  # offset-naive
                         to_del.append(userid)
                 except TypeError:
-                    if reactiv["expiry"] < datetime.datetime.now(datetime.timezone.utc):  # offset-aware
+                    if reactiv["expiry"] < datetime.datetime.now(datetime.UTC):  # offset-aware
                         to_del.append(userid)
             for userid in to_del:
                 del rec[userid]

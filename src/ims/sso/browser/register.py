@@ -86,13 +86,11 @@ class AddUserForm(BaseAddUserForm):
         self.sso.initialize_login(data["user_id"])
 
         member = api.user.get(userid=data["user_id"])
-        member.setMemberProperties(
-            {
-                "created_date": datetime.date.today(),
-                "activation_date": datetime.date.today(),
-                "active": "active",
-            }
-        )
+        member.setMemberProperties({
+            "created_date": datetime.date.today(),
+            "activation_date": datetime.date.today(),
+            "active": "active",
+        })
 
     def applyProperties(self, userid, data):
         """we needed to add fullname but now we have to remove it or applyProperties fails
@@ -120,7 +118,7 @@ class AddUserForm(BaseAddUserForm):
             return
 
         match = api.portal.get_tool("acl_users").searchUsers(email=data["email"])
-        if match and not self.request.get("allow_match"):
+        if match and not self.request.get("form.widgets.allow_match"):
             self.confirmation_required = True
 
             def wrap_name(name, match):

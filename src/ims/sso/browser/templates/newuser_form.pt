@@ -39,7 +39,7 @@
                   />
                   <input class="form-check-input"
                          id="allow_match"
-                         name="allow_match"
+                         name="form.widgets.allow_match"
                          type="checkbox"
                          value="1"
                   />

@@ -85,21 +85,19 @@ class ISSOSettings(model.Schema):
     idps = JSONField(
         title="IdPs",
         description='See schema for details. ex: [{"domain": "", "name": "", "idp_logout":""}]',
-        schema=json.dumps(
-            {
-                "type": "array",
-                "items": {
-                    "title": "IdPs",
-                    "type": "object",
-                    "properties": {
-                        "domain": {"description": "Domain", "type": "string"},
-                        "name": {"description": "Name", "type": "string"},
-                        "idp_logout": {"description": "IdP Logout", "type": "string"},
-                    },
-                    "required": ["domain", "name"],
+        schema=json.dumps({
+            "type": "array",
+            "items": {
+                "title": "IdPs",
+                "type": "object",
+                "properties": {
+                    "domain": {"description": "Domain", "type": "string"},
+                    "name": {"description": "Name", "type": "string"},
+                    "idp_logout": {"description": "IdP Logout", "type": "string"},
                 },
-            }
-        ),
+                "required": ["domain", "name"],
+            },
+        }),
     )
     directives.write_permission(generic_logout="ims.sso.BasicSettings")
     generic_logout = schema.TextLine(

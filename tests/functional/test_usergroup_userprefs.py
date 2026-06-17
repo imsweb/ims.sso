@@ -287,6 +287,7 @@ class TestUserGroupsPage:
         """In lieue of knowing how to test this properly, at least make sure it doesn't error"""
         api.group.create(groupname="foo", title="Foo")
         api.group.add_user(groupname="foo", username="active_user")
+        commit()
         browser.open(self.view_url)
         ctrl = browser.getControl
 

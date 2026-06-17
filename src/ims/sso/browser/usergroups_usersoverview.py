@@ -99,9 +99,8 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
         curated = []
         for usr in results:
             user_account = plone.api.user.get(userid=usr["id"])
-            if not find_all:
-                if user_account.getProperty("active") not in active_status:
-                    continue
+            if not find_all and user_account.getProperty("active") not in active_status:
+                continue
             idp, login = self.sso.extract_idp_login(user_account.getUserName())
             usr["idp"] = self.sso.get_idp_from_domain(idp)
             usr["login"] = login
@@ -228,7 +227,8 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
                     except NoSSOMailTemplatesException:
                         plone.api.portal.show_message(
                             _(
-                                "Request was not sent. Please configure mail templates for SSO or contact the administrator."
+                                "Request was not sent. Please configure mail templates for SSO or contact the "
+                                "administrator."
                             ),
                             request=self.request,
                             type="error",
