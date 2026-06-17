@@ -25,7 +25,7 @@ dependencies = [
 homepage = "https://github.com/imsweb/ims.sso"
 
 [project.optional-dependencies]
-test = ["plone.app.testing", "plone.mocktestcase", "formencode"]
+test = ["plone.app.testing", "plone.mocktestcase", "formencode", "plone.app.robotframework"]
 
 [project.entry-points."plone.autoinclude.plugin"]
 target = "plone"
