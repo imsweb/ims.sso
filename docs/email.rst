@@ -1,7 +1,7 @@
 Email Messages
 ==============
 
-TODO
+Email messages can be configured for specific IdPs for new user registration and for relinking Shibboleth/Plone accounts.
 
 Email templates:
 registered_notify

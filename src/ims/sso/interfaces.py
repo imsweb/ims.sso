@@ -97,21 +97,19 @@ class ISSOSettings(model.Schema):
     idps = JSONField(
         title="IdPs",
         description='See schema for details. ex: [{"domain": "", "name": "", "idp_logout":""}]',
-        schema=json.dumps(
-            {
-                "type": "array",
-                "items": {
-                    "title": "IdPs",
-                    "type": "object",
-                    "properties": {
-                        "domain": {"description": "Domain", "type": "string"},
-                        "name": {"description": "Name", "type": "string"},
-                        "idp_logout": {"description": "IdP Logout", "type": "string"},
-                    },
-                    "required": ["domain", "name"],
+        schema=json.dumps({
+            "type": "array",
+            "items": {
+                "title": "IdPs",
+                "type": "object",
+                "properties": {
+                    "domain": {"description": "Domain", "type": "string"},
+                    "name": {"description": "Name", "type": "string"},
+                    "idp_logout": {"description": "IdP Logout", "type": "string"},
                 },
-            }
-        ),
+                "required": ["domain", "name"],
+            },
+        }),
     )
     directives.write_permission(generic_logout="ims.sso.BasicSettings")
     generic_logout = schema.TextLine(
@@ -126,11 +124,17 @@ class ISSOSettings(model.Schema):
         default="https://login.gov/create-an-account/",
     )
     directives.write_permission(idps="ims.sso.AdvancedSettings")
-    non_update_domains = schema.List(
+    non_updating_idps = schema.List(
         title="Non-updating IdPs",
         description="Blacklist of IdP domain names where user email and name will not be updated.",
         value_type=schema.TextLine(),
-        default=["auth.ncats.nih.gov", "a-ci.ncats.io"],
+        default=[],
+    )
+    undisplayed_loginname_idps = schema.List(
+        title="Don't display Login Name for these Idps",
+        description="Login names from these domains will not be displayed on the users overview page.",
+        value_type=schema.TextLine(),
+        default=[],
     )
 
 

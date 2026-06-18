@@ -42,44 +42,13 @@ class SsoWarningsViewlet(ViewletBase):
                     return False
             if not str(self.request.response.status).startswith("2"):
                 return False
-            return self.sso.has_user_header(self.request) and api.user.is_anonymous() and not self.logingov()
-
-    def logingov(self):
-        # TODO - this needs to be moved to ims.users only
-        #        override this as a browserlayer view there
-        LOGIN_DOT_GOV_IDP_DOMAIN = "auth.ncats.nih.gov"
-        LOGIN_DOT_GOV_DEV_IDP_DOMAIN = "a-ci.ncats.io"
-        for _view in self.sso.get_setting("unauth_ignored_views"):
-            if _view in self.request["ACTUAL_URL"].split("/"):
-                return False
-
-        login_gov_domains = [LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN]
-        sso = getUtility(ISingleSignonUtility)
-        real_login_name = sso.get_login_from_request(self.request)
-        if api.user.is_anonymous() and real_login_name:
-            idp, _ = sso.get_idp_domain_from_login(real_login_name)
-            if idp in login_gov_domains:
-                shib_header_email = self.sso.get_setting("shib_header_email")
-                email = self.request.environ.get(shib_header_email)
-                for usr in api.user.get_users():
-                    # user is already converted but still anon - presumably because of status
-                    is_login_gov = sso.get_idp_domain_from_login(usr.getUserName())[0] in login_gov_domains
-                    if email == usr.getProperty("email", None) and not is_login_gov:
-                        self.request.response.setHeader("Cache-Control", "no-cache")
-                        self.request.response.setHeader("Pragma", "no-cache")
-                        return True
+            return self.sso.has_user_header(self.request) and api.user.is_anonymous()
 
     def login_info(self):
-        # TODO - also override this in ims.users to display email address instead of user id
         sso = getUtility(ISingleSignonUtility)
-        # shib_header_email = sso.get_setting("shib_header_email")
         real_login_name = sso.get_login_from_request(self.request)
-        # LOGIN_DOT_GOV_IDP_DOMAIN = "auth.ncats.nih.gov"
-        # LOGIN_DOT_GOV_DEV_IDP_DOMAIN = "a-ci.ncats.io"
         if real_login_name:
             idp, idp_login_name = sso.get_idp_domain_from_login(real_login_name)
-            # if idp in [LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN]:
-            #     idp_login_name = self.request.environ.get(shib_header_email)
             idp = sso.get_idp_from_domain(idp)
             return f"{idp_login_name} via {idp}"
         else:

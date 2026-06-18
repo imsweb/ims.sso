@@ -23,9 +23,6 @@ class RedirectLogin(LoginForm):
         self.request.response.redirect(api.portal.get().absolute_url())
         return
 
-        # TODO - alternatively this could create a session
-        # we would need to update the auth/unauth check
-
 
 class SsoLogout(BrowserView):
     @property

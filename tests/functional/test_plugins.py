@@ -109,7 +109,7 @@ class TestPlugins:
         # control
         assert usr.getProperty("email") != "noreply@imsweb.com"
 
-        api.portal.set_registry_record(interface=ISSOSettings, name="non_update_domains", value=["adfs.imsweb.com"])
+        api.portal.set_registry_record(interface=ISSOSettings, name="non_updating_idps", value=["adfs.imsweb.com"])
 
         plugin.authenticateCredentials(CREDENTIALS)
         transaction.commit()

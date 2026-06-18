@@ -90,7 +90,7 @@ class ImsSsoPlugin(BasePlugin):
 
                 mtool.createMemberArea(member_id=user_id)
                 domain = urlparse(credentials["idp"]).netloc
-                if domain not in self.sso.get_setting("non_update_domains"):
+                if domain not in self.sso.get_setting("non_updating_idps"):
                     self.update_user(
                         username=user_id,
                         first_name=credentials.get("first_name"),
@@ -98,6 +98,7 @@ class ImsSsoPlugin(BasePlugin):
                         email=credentials.get("email"),
                     )
                 else:
+                    # we still update names, just not email. Some IdPs support login via multiple email addresses
                     self.update_user(
                         username=user_id,
                         first_name=credentials.get("first_name"),

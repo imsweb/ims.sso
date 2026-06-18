@@ -30,15 +30,6 @@
       layer="..interfaces.IBrowserLayer"
       />
 
-  <!-- TODO - remove (likely vestigial) -->
-  <!-- <browser:page
-      name="mail-password"
-      for="zope.interface.Interface"
-      class=".notify.MailPassword"
-      permission="zope2.ManageUsers"
-      layer="..interfaces.IBrowserLayer"
-      /> -->
-
   <browser:page
       name="mass_relink"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"

@@ -86,13 +86,11 @@ class AddUserForm(BaseAddUserForm):
         self.sso.initialize_login(data["user_id"])
 
         member = api.user.get(userid=data["user_id"])
-        member.setMemberProperties(
-            {
-                "created_date": datetime.date.today(),
-                "activation_date": datetime.date.today(),
-                "active": "active",
-            }
-        )
+        member.setMemberProperties({
+            "created_date": datetime.date.today(),
+            "activation_date": datetime.date.today(),
+            "active": "active",
+        })
 
     def applyProperties(self, userid, data):
         """we needed to add fullname but now we have to remove it or applyProperties fails
@@ -109,7 +107,6 @@ class AddUserForm(BaseAddUserForm):
     @button.buttonAndHandler(_("label_register", default="Register"), name="register")
     def action_join(self, action):
         # we overwrite the super action_join so it doesn't redirect with search string
-        # TODO - move this to ims.users, it is not sso related
 
         data, _errors = self.extractData()
         # extra password validation

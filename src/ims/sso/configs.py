@@ -11,7 +11,6 @@ DISABLED_STATUS = "disabled"
 REACTIVATE_VIEW_ID = "reactive_user"
 
 # seconds between last update of login_time, so we don't update every request
-# TODO - move this to a login session, so it's not needed?
 LOGIN_UPDATE_THRESHOLD = 30 * 60
 
 NOT_LINKED = "not.linked"
