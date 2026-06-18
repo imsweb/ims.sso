@@ -12,7 +12,7 @@ from zope.interface.declarations import alsoProvides, implementer
 from zope.publisher.interfaces import IPublishTraverse
 
 from ..configs import AUTHENTICATED_KEY, NOT_LINKED, _
-from ..events import IUserIdpUpdated
+from ..events import UserIdpUpdated
 from ..interfaces import IReactivationUtility, ISingleSignonUtility
 
 
@@ -92,7 +92,7 @@ class SsoLinkaccount(BrowserView):
                 if is_relink:
                     plone_view = getMultiAdapter((self.context, self.request), name="plone")
                     sso.notify_relinked(usr, email, plone_view)
-                    notify(IUserIdpUpdated(usr))
+                    notify(UserIdpUpdated(usr))
             return self.success()
         else:
             return ViewPageTemplateFile("templates/linkaccount_anonymous.pt")(self)
