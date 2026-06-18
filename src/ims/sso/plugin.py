@@ -58,7 +58,7 @@ class ImsSsoPlugin(BasePlugin):
         return getUtility(ISingleSignonUtility)
 
     def challenge(self, request, response):
-        if self.sso.is_shibboleth_authenticated:
+        if self.sso.is_shibboleth_authenticated(request):
             return False
         url = self.login_url(request.ACTUAL_URL)
         if url:

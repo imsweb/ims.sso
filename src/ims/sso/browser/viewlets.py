@@ -77,7 +77,7 @@ class SsoWarningsViewlet(ViewletBase):
         # LOGIN_DOT_GOV_IDP_DOMAIN = "auth.ncats.nih.gov"
         # LOGIN_DOT_GOV_DEV_IDP_DOMAIN = "a-ci.ncats.io"
         if real_login_name:
-            idp, idp_login_name = sso.extract_idp_login(real_login_name)
+            idp, idp_login_name = sso.get_idp_domain_from_login(real_login_name)
             # if idp in [LOGIN_DOT_GOV_DEV_IDP_DOMAIN, LOGIN_DOT_GOV_IDP_DOMAIN]:
             #     idp_login_name = self.request.environ.get(shib_header_email)
             idp = sso.get_idp_from_domain(idp)

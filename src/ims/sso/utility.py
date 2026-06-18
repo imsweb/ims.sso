@@ -169,7 +169,7 @@ class SingleSignonUtility:
         to_email = self.get_setting(name="notify_relinked")
         if to_email:
             portal_title = api.portal.get_registry_record("plone.site_title")
-            domain = self.extract_idp_login(usr.getUserName())[0]
+            domain = self.get_idp_domain_from_login(usr.getUserName())[0]
             idp = self.get_idp_from_domain(domain)
             subj = f"{portal_title} user has updated their account"
             msg = (
@@ -264,20 +264,24 @@ class MailTemplatesUtility:
         """Helper method"""
         return api.portal.get_registry_record(interface=ISSOSettings, name=name)
 
-    subject = "\n".join((
-        "From: {from_name}",
-        "To: {to_name}",
-        "Subject: {subject}",
-        "Precedence: bulk",
-        "",
-        "",
-    ))
-    expiry = "\n".join((
-        "",
-        "",
-        "This link will expire in {timeout} days (by {timeout_d}).",
-        "If {timeout} days have elapsed, please reply to this e-mail and request another link.",
-    ))
+    subject = "\n".join(
+        (
+            "From: {from_name}",
+            "To: {to_name}",
+            "Subject: {subject}",
+            "Precedence: bulk",
+            "",
+            "",
+        )
+    )
+    expiry = "\n".join(
+        (
+            "",
+            "",
+            "This link will expire in {timeout} days (by {timeout_d}).",
+            "If {timeout} days have elapsed, please reply to this e-mail and request another link.",
+        )
+    )
 
     def get_mailer(self):
         """Get the mail templater"""

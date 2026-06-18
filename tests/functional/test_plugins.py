@@ -2,6 +2,7 @@ import pytest
 import transaction
 from ims.sso.interfaces import ISSOSettings
 from plone import api
+from plone.testing import zope
 
 test_login = "guido"
 test_user_id = "someCrazyUserIdForGuido"
@@ -33,6 +34,7 @@ class TestPlugins:
         assert plugin.authenticateCredentials(CREDENTIALS) == (test_user_id, test_login + "@adfs.imsweb.com")
 
     def test_challenge_plugin(self, plugin, portal, http_request):
+        zope.logout()
         url = http_request.ACTUAL_URL
         plugin.challenge(http_request, http_request.response)
 
