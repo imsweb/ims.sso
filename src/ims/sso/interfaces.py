@@ -17,15 +17,21 @@ class IBrowserLayer(IDefaultPloneLayer):
 class ISSOSettings(model.Schema):
     directives.write_permission(shib_header_user="ims.sso.AdvancedSettings")
     shib_header_user = schema.TextLine(
-        title="Shibboleth Header - User Name", default="HTTP_SHIBUSERNAME", required=True
+        title="Shibboleth Header - User Name",
+        default="HTTP_SHIBUSERNAME",
+        required=True,
     )
     directives.write_permission(shib_header_first_name="ims.sso.AdvancedSettings")
     shib_header_first_name = schema.TextLine(
-        title="Shibboleth Header - First Name", default="HTTP_SHIBFIRSTNAME", required=False
+        title="Shibboleth Header - First Name",
+        default="HTTP_SHIBFIRSTNAME",
+        required=False,
     )
     directives.write_permission(shib_header_last_name="ims.sso.AdvancedSettings")
     shib_header_last_name = schema.TextLine(
-        title="Shibboleth Header - LAST Name", default="HTTP_SHIBLASTNAME", required=False
+        title="Shibboleth Header - LAST Name",
+        default="HTTP_SHIBLASTNAME",
+        required=False,
     )
     directives.write_permission(shib_header_email="ims.sso.AdvancedSettings")
     shib_header_email = schema.TextLine(title="Shibboleth Header - Email", default="HTTP_SHIBEMAIL", required=False)
@@ -40,7 +46,9 @@ class ISSOSettings(model.Schema):
     )
     directives.write_permission(user_account_expiry="ims.sso.BasicSettings")
     user_account_expiry = schema.Int(
-        title=_("Unlinked account expiration"), description=_("Days until unlinked accounts will expire"), default=90
+        title=_("Unlinked account expiration"),
+        description=_("Days until unlinked accounts will expire"),
+        default=90,
     )
     directives.write_permission(mail_format="ims.sso.BasicSettings")
     mail_format = schema.Choice(
@@ -67,11 +75,15 @@ class ISSOSettings(model.Schema):
     )
     directives.write_permission(days_until_inactive="ims.sso.BasicSettings")
     days_until_inactive = schema.Int(
-        title="Days Until Inactive", description="Requires a call to @@sso-tasks to enforce", default=90
+        title="Days Until Inactive",
+        description="Requires a call to @@sso-tasks to enforce",
+        default=90,
     )
     directives.write_permission(days_until_disabled="ims.sso.BasicSettings")
     days_until_disabled = schema.Int(
-        title="Days Until Disabled", description="Requires a call to @@sso-tasks to enforce", default=730
+        title="Days Until Disabled",
+        description="Requires a call to @@sso-tasks to enforce",
+        default=730,
     )
     directives.write_permission(unauth_ignored_views="ims.sso.AdvancedSettings")
     unauth_ignored_views = schema.List(
@@ -85,19 +97,21 @@ class ISSOSettings(model.Schema):
     idps = JSONField(
         title="IdPs",
         description='See schema for details. ex: [{"domain": "", "name": "", "idp_logout":""}]',
-        schema=json.dumps({
-            "type": "array",
-            "items": {
-                "title": "IdPs",
-                "type": "object",
-                "properties": {
-                    "domain": {"description": "Domain", "type": "string"},
-                    "name": {"description": "Name", "type": "string"},
-                    "idp_logout": {"description": "IdP Logout", "type": "string"},
+        schema=json.dumps(
+            {
+                "type": "array",
+                "items": {
+                    "title": "IdPs",
+                    "type": "object",
+                    "properties": {
+                        "domain": {"description": "Domain", "type": "string"},
+                        "name": {"description": "Name", "type": "string"},
+                        "idp_logout": {"description": "IdP Logout", "type": "string"},
+                    },
+                    "required": ["domain", "name"],
                 },
-                "required": ["domain", "name"],
-            },
-        }),
+            }
+        ),
     )
     directives.write_permission(generic_logout="ims.sso.BasicSettings")
     generic_logout = schema.TextLine(

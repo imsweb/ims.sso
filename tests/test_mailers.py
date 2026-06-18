@@ -52,13 +52,23 @@ class TestMailers:
         api.portal.set_registry_record(
             name="idps",
             interface=ISSOSettings,
-            value=[{"domain": "foo.bar", "name": "MyIdp", "idp_logout": "https://foo.bar/logout"}],
+            value=[
+                {
+                    "domain": "foo.bar",
+                    "name": "MyIdp",
+                    "idp_logout": "https://foo.bar/logout",
+                }
+            ],
         )
         api.portal.set_registry_record(
-            name="generic_logout", interface=ISSOSettings, value="https://foo_generic.bar/logout"
+            name="generic_logout",
+            interface=ISSOSettings,
+            value="https://foo_generic.bar/logout",
         )
         api.portal.set_registry_record(
-            name="registration_url", interface=ISSOSettings, value="https://foo.bar/create-account"
+            name="registration_url",
+            interface=ISSOSettings,
+            value="https://foo.bar/create-account",
         )
 
     @property

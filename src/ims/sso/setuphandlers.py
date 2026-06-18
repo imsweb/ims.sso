@@ -48,7 +48,9 @@ def install(context):
 
     if not api.portal.get_registry_record(interface=ISSOSettings, name="idps"):
         api.portal.set_registry_record(
-            interface=ISSOSettings, name="idps", value=[{"domain": "not.linked", "name": "Not Linked"}]
+            interface=ISSOSettings,
+            name="idps",
+            value=[{"domain": "not.linked", "name": "Not Linked"}],
         )
 
 

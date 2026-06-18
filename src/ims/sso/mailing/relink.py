@@ -71,7 +71,11 @@ class MassRelink(AutoExtensibleForm, form.Form):
                 immediate=False,
             )
 
-        plone.api.portal.show_message(message=_("msg_email", default="Emails sent"), request=self.request, type="info")
+        plone.api.portal.show_message(
+            message=_("msg_email", default="Emails sent"),
+            request=self.request,
+            type="info",
+        )
         self.request.response.redirect(portal.absolute_url())
 
     def duplicates(self) -> list[str]:

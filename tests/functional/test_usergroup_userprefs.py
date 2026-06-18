@@ -56,7 +56,10 @@ class TestUserGroupsPage:
             properties={"active": ACTIVE_STATUS},
         )
         api.user.create(
-            username="unlinked", email="unlinked@nohost.com", roles=["Member"], properties={"active": INACTIVE_STATUS}
+            username="unlinked",
+            email="unlinked@nohost.com",
+            roles=["Member"],
+            properties={"active": INACTIVE_STATUS},
         )
         sso.set_login_name("unlinked", f"123@{NOT_LINKED}")
         commit()
@@ -108,7 +111,10 @@ class TestUserGroupsPage:
             username="active_user",
             email="active_user@nohost.com",
             roles=["Member"],
-            properties={"active": INACTIVE_STATUS, "created_date": datetime.date.today()},
+            properties={
+                "active": INACTIVE_STATUS,
+                "created_date": datetime.date.today(),
+            },
         )
         sso.initialize_login("active_user")
         commit()

@@ -15,7 +15,14 @@ from zope.component import getUtility
 from zope.globalrequest import getRequest
 from ZPublisher.HTTPRequest import HTTPRequest
 
-from .configs import ACTIVE_STATUS, APACHE_NULL, AUTHENTICATED_KEY, DISABLED_STATUS, INACTIVE_STATUS, NOT_LINKED
+from .configs import (
+    ACTIVE_STATUS,
+    APACHE_NULL,
+    AUTHENTICATED_KEY,
+    DISABLED_STATUS,
+    INACTIVE_STATUS,
+    NOT_LINKED,
+)
 from .errors import NoSSOMailTemplatesException
 from .interfaces import IMailTemplates, ISSOSettings
 

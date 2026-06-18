@@ -241,7 +241,13 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
                     if not self.is_zope_manager and ("Manager" in roles) != ("Manager" in current_roles):
                         # don't allow adding or removing the Manager role
                         raise Forbidden
-                    acl_users.userFolderEditUser(user["id"], pw, roles, member.getDomains(), REQUEST=context.REQUEST)
+                    acl_users.userFolderEditUser(
+                        user["id"],
+                        pw,
+                        roles,
+                        member.getDomains(),
+                        REQUEST=context.REQUEST,
+                    )
 
             if active_change:
                 plone.api.portal.show_message(
@@ -290,13 +296,11 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
             search = ["active"]
 
         for opt in getUtility(IVocabularyFactory, name="ims.sso.active_status")(self):
-            opts.append(
-                {
-                    "value": opt.value,
-                    "title": opt.title,
-                    "selected": opt.value in search,
-                }
-            )
+            opts.append({
+                "value": opt.value,
+                "title": opt.title,
+                "selected": opt.value in search,
+            })
 
         return opts
 
@@ -309,13 +313,11 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
         unsortable_cols = [len_cols - 3, len_cols - 1]
         if self.can_change_roles():
             unsortable_cols = list(range(3, len(self.portal_roles) + 3)) + unsortable_cols
-        return json.dumps(
-            {
-                "searching": False,
-                "info": False,
-                "lengthMenu": [[25, 50, -1], [25, 50, "All"]],
-                "pageLength": 25,
-                "stateSave": True,
-                "columnDefs": [{"orderable": False, "targets": unsortable_cols}],
-            }
-        )
+        return json.dumps({
+            "searching": False,
+            "info": False,
+            "lengthMenu": [[25, 50, -1], [25, 50, "All"]],
+            "pageLength": 25,
+            "stateSave": True,
+            "columnDefs": [{"orderable": False, "targets": unsortable_cols}],
+        })

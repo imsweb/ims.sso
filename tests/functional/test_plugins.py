@@ -31,7 +31,10 @@ class TestPlugins:
 
     def test_authenticate_plugin(self, plugin):
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
-        assert plugin.authenticateCredentials(CREDENTIALS) == (test_user_id, test_login + "@adfs.imsweb.com")
+        assert plugin.authenticateCredentials(CREDENTIALS) == (
+            test_user_id,
+            test_login + "@adfs.imsweb.com",
+        )
 
     def test_challenge_plugin(self, plugin, portal, http_request):
         zope.logout()

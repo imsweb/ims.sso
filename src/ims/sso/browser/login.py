@@ -152,16 +152,22 @@ class RequireLoginView(BrowserView):
 
         if utility.is_plone_authenticated():
             return api.content.get_view(
-                context=api.portal.get(), request=self.request, name="insufficient-privileges"
+                context=api.portal.get(),
+                request=self.request,
+                name="insufficient-privileges",
             )()
         else:
             if utility.is_shibboleth_authenticated(self.request):
                 return api.content.get_view(
-                    context=self.context, request=self.request, name="unauthorized_shib_authenticated"
+                    context=self.context,
+                    request=self.request,
+                    name="unauthorized_shib_authenticated",
                 )()
             else:
                 return api.content.get_view(
-                    context=self.context, request=self.request, name="unauthorized_shib_unauthenticated"
+                    context=self.context,
+                    request=self.request,
+                    name="unauthorized_shib_unauthenticated",
                 )()
 
 

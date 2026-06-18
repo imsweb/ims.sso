@@ -1,6 +1,11 @@
 import pytest
 from ims.sso.browser.viewlets import SsoWarningsViewlet
-from ims.sso.configs import ACTIVE_STATUS, AUTHENTICATED_KEY, DISABLED_STATUS, INACTIVE_STATUS
+from ims.sso.configs import (
+    ACTIVE_STATUS,
+    AUTHENTICATED_KEY,
+    DISABLED_STATUS,
+    INACTIVE_STATUS,
+)
 from ims.sso.interfaces import ISSOSettings
 from plone import api
 from plone.protect.authenticator import createToken
@@ -94,7 +99,14 @@ class TestViews:
         )
         # adopt_user by username doesn't work when login_name is changed
         with api.env.adopt_user(user=api.user.get(username="siteadmin")):
-            data = [{"active": "active", "id": "manager", "reset_email": "manager@nohost.com", "roles": ["Member"]}]
+            data = [
+                {
+                    "active": "active",
+                    "id": "manager",
+                    "reset_email": "manager@nohost.com",
+                    "roles": ["Member"],
+                }
+            ]
             view.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
             view.request.method = "POST"
 
@@ -105,7 +117,14 @@ class TestViews:
         # assign permission and run as siteadmin again
         portal.manage_permission("ims.sso: can change roles", roles=["Manager", "Site Administrator"])
         with api.env.adopt_user(user=api.user.get(username="siteadmin")):
-            data = [{"active": "active", "id": "manager", "reset_email": "manager@nohost.com", "roles": ["Member"]}]
+            data = [
+                {
+                    "active": "active",
+                    "id": "manager",
+                    "reset_email": "manager@nohost.com",
+                    "roles": ["Member"],
+                }
+            ]
             view.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
             view.request.method = "POST"
 
