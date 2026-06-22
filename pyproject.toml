@@ -36,7 +36,6 @@ skips = ["B404", "B603"]
 
 [tool.coverage.report]
 include = ["src/ims/sso/*"]
-omit = ["venv", "*/test*", "*upgrades.py"]
 
 [tool.flake8]
 max-line-length = 120
