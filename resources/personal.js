@@ -11,18 +11,18 @@ $(document).ready(function () {
                 function (field_index, field_value) {
                     let el = $(
                         "body.template-" +
-                            template_value +
-                            ".sso-enabled #form-widgets-" +
-                            field_value,
+                        template_value +
+                        " #form-widgets-" +
+                        field_value,
                     );
                     if (el.length) {
                         el.addClass("d-none");
                         el.after(
                             '<input type="text" name="fake_' +
-                                field_value +
-                                '" class="form-control" id="fake_' +
-                                field_value +
-                                '" />',
+                            field_value +
+                            '" class="form-control" id="fake_' +
+                            field_value +
+                            '" />',
                         );
                         let fake_el = $("#fake_" + field_value);
                         fake_el.val(el.val());
