@@ -40,7 +40,7 @@ jobs:
         pip install .[test] pytest coverage
     - name: Run unittests
       run: |
-        pytest
+        coverage run -m pytest
     - name: "Upload coverage data"
       uses: actions/upload-artifact@v4
       with:
