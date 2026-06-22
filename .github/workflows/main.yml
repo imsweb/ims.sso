@@ -39,6 +39,7 @@ jobs:
         pip install -e .[test] coverage
     - name: Run unittests
       run: |
+        source .venv/bin/activate
         coverage run -m pytest
         coverage html
     - name: "Upload coverage data"
