@@ -49,12 +49,12 @@ class TestCron:
         assert api.user.get("user1").getProperty("active") == "active"
 
         # inactive/disable
-        self.user1.setMemberProperties(
-            {"activation_date": datetime.date.today() - datetime.timedelta(self.inactive_days + 1)}
-        )
-        self.user2.setMemberProperties(
-            {"activation_date": datetime.date.today() - datetime.timedelta(self.disabled_days + 1)}
-        )
+        self.user1.setMemberProperties({
+            "activation_date": datetime.date.today() - datetime.timedelta(self.inactive_days + 1)
+        })
+        self.user2.setMemberProperties({
+            "activation_date": datetime.date.today() - datetime.timedelta(self.disabled_days + 1)
+        })
         view()
         assert api.user.get("user1").getProperty("active") == "inactive"
         assert api.user.get("user2").getProperty("active") == "disabled"
