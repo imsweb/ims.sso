@@ -41,8 +41,7 @@ jobs:
     - name: Run unittests
       run: |
         coverage run -m pytest
-        ls -la
-        coverage html
+        coverage html --data-file=.coverage
     - name: "Upload coverage data"
       uses: actions/upload-artifact@v4
       with:
