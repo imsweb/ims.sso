@@ -18,7 +18,7 @@ Registration
 
 A site admin that adds a user probably does not know the details of that user's IdP account, or maybe even what IdP
 that user will use. Thus, we need a process to link a Plone account to an IdP account. On user registration,
-the user is sent an email (see `Email Messages <emails.html>`_) with a URL to link their account. This process is
+the user is sent an email (see `Email Messages <email.html>`_) with a URL to link their account. This process is
 similar to the reset password feature, and in fact uses the PasswordResetTool to generate a unique key for that user.
 When visiting the site from that URL they will first be directed through Shibboleth, either by the challenge plugin
 or by virtue of Apache/Nginx settings. The `@@linkaccount` consumes and invalidates the key and updates the user's login
