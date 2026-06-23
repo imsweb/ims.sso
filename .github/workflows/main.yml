@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -36,14 +36,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        python -m venv .venv
+        source .venv/bin/activate
         python -m pip install --upgrade pip
-        pip install .[test] pytest coverage
+        pip install -e .[test] coverage
     - name: Run unittests
       run: |
+        source .venv/bin/activate
         coverage run -m pytest
-        coverage html
-    - name: "Upload coverage data"
-      uses: actions/upload-artifact@v4
-      with:
-        name: covdata
-        path: htmlcov
+        coverage report
