@@ -16,7 +16,7 @@ module.exports = () => {
         config: config,
         package_json: package_json,
     });
-    config.output.path = path.resolve(__dirname, "ims/users/static/bundle");
+    config.output.path = path.resolve(__dirname, "src/ims/sso/static/bundle");
 
     config.module.rules.push({
         test: /\.svg$/i,

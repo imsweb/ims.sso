@@ -1,0 +1,21 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="ims.sso"
+    >
+  <utility
+      factory=".utility.SingleSignonUtility"
+      provides=".interfaces.ISingleSignonUtility"
+      />
+
+  <utility
+      factory=".utility.MailTemplatesUtility"
+      provides="ims.sso.interfaces.IMailTemplatesUtility"
+      />
+
+  <utility
+      factory=".utility.ReactivationUtility"
+      provides=".interfaces.IReactivationUtility"
+      />
+</configure>

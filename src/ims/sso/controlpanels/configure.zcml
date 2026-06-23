@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="ims.sso"
+    >
+
+  <browser:page
+      name="sso-settings"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".sso.SsoSettingsControlPanelView"
+      permission="ims.sso.BasicSettings"
+      />
+</configure>

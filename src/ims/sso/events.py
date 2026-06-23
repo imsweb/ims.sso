@@ -7,19 +7,25 @@ from zope.interface.declarations import implementer
 
 
 class IUserRelinkedEvent(IPASEvent):
-    """An object has been downloaded"""
+    """User relink initiated"""
 
 
 @implementer(IUserRelinkedEvent)
 class UserRelinkedEvent(PASEvent):
-    """An object has been downloaded"""
+    """User relink intiated"""
+
+
+class IUserIdpUpdated(IPASEvent):
+    """User relink initiated"""
+
+
+@implementer(IUserIdpUpdated)
+class UserIdpUpdated(PASEvent):
+    """User idp updated"""
 
 
 def user_relinked(user):
-    """user was relinked, update created_date"""
-    try:
-        user = plone.api.user.get(userid=user.principal["id"])
-    except plone.api.exc.CannotGetPortalError:
-        return
+    """user was relinked, reset the created_date. This resets the unlinked expiration mechanism"""
+    user = plone.api.user.get(userid=user.principal["id"])
     today = datetime.date.today()
     user.setMemberProperties({"created_date": today})

@@ -1,6 +1,5 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools", "wheel"]
 
 [project]
 name = "ims.sso"
@@ -25,7 +24,7 @@ dependencies = [
 homepage = "https://github.com/imsweb/ims.sso"
 
 [project.optional-dependencies]
-test = ["plone.app.testing", "plone.mocktestcase", "formencode"]
+test = ["plone.app.testing", "plone.mocktestcase", "formencode", "plone.app.robotframework", "pytest_plone"]
 
 [project.entry-points."plone.autoinclude.plugin"]
 target = "plone"
@@ -36,7 +35,6 @@ skips = ["B404", "B603"]
 
 [tool.coverage.report]
 include = ["src/ims/sso/*"]
-omit = ["venv", "*/test*", "*upgrades.py"]
 
 [tool.flake8]
 max-line-length = 120
@@ -107,21 +105,8 @@ name = "Other tasks"
 showcontent = false
 check = false
 
-[tool.hatch.version]
-path = "src/ims/sso/__init__.py"
-
-[tool.hatch.build]
-strict-naming = false
-packages = ["src/ims"]
-
-[tool.hatch.envs.default.scripts]
-test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest {args:tests}"
-cov-report = "coverage html"
-cov = [
-    "test-cov",
-    "cov-report",
-]
+[tool.setuptools.dynamic]
+version = {attr = "ims.sso.__version__"}
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

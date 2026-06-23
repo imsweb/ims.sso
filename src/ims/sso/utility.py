@@ -8,15 +8,23 @@ import DateTime
 from persistent.mapping import PersistentMapping
 from plone import api
 from plone.uuid.interfaces import IUUIDGenerator
+from Products.Five import BrowserView
 from Products.PlonePAS.tools.memberdata import MemberData
 from zope.annotation.interfaces import IAnnotations
-from zope.component import getUtility, queryUtility
+from zope.component import getUtility
 from zope.globalrequest import getRequest
 from ZPublisher.HTTPRequest import HTTPRequest
 
-from .configs import ACTIVE_STATUS, APACHE_NULL, AUTHENTICATED_KEY, DISABLED_STATUS, INACTIVE_STATUS, NOT_LINKED
+from .configs import (
+    ACTIVE_STATUS,
+    APACHE_NULL,
+    AUTHENTICATED_KEY,
+    DISABLED_STATUS,
+    INACTIVE_STATUS,
+    NOT_LINKED,
+)
 from .errors import NoSSOMailTemplatesException
-from .interfaces import IMailTemplates, ISettings
+from .interfaces import IMailTemplates, ISSOSettings
 
 send_portal_link_msg = """Your account has been successfully updated on {}.
 
@@ -39,39 +47,57 @@ class SingleSignonUtility:
     """Single Sign On Utility"""
 
     @staticmethod
-    def initialize_login(data: dict) -> None:
+    def get_setting(name: str) -> str:
+        """Helper method"""
+        return api.portal.get_registry_record(interface=ISSOSettings, name=name)
+
+    def is_plone_authenticated(self):
+        """Both Plone and Shibboleth need to identify the user. We need methods for both"""
+        return not api.user.is_anonymous()
+
+    def is_shibboleth_authenticated(self, request):
+        """Checks if Shibboleth session exists by looking for user header
+        This does not check if user is anonymous to Plone nor does it check authorization
+        """
+        user_header = self.get_setting(name="shib_header_user")
+        usr = request.environ.get(user_header)
+        return usr and not is_null(usr)
+
+    @property
+    def pas(self):
+        return api.portal.get_tool("acl_users")
+
+    def initialize_login(self, user_id: str) -> None:
         """Create a randomized login name for the unlinked account
 
         Effectively, this account cannot be used until linked
         """
-        pas = api.portal.get_tool("acl_users")
-        login_name = hashlib.sha256(data["user_id"].encode("utf-8")).hexdigest() + "@not.linked"  # nosec
-        pas.updateLoginName(data["user_id"], login_name)
+        login_name = hashlib.sha256(user_id.encode("utf-8")).hexdigest() + "@not.linked"  # nosec
+        self.pas.updateLoginName(user_id, login_name)
 
-    @staticmethod
-    def get_login_from_request(request: HTTPRequest) -> str:
+    def get_login_from_request(self, request: HTTPRequest) -> str:
         """Generate the login name from the request headers"""
-        idp_header = api.portal.get_registry_record(interface=ISettings, name="shib_header_idp")
-        user_header = api.portal.get_registry_record(interface=ISettings, name="shib_header_user")
-        domain = urlparse(request.environ.get(idp_header)).netloc
+        idp_header = self.get_setting(name="shib_header_idp")
+        user_header = self.get_setting(name="shib_header_user")
+        domain = urlparse(request.environ.get(idp_header)).netloc or request.environ.get(idp_header)
         login = request.environ.get(user_header)
         if is_null(login):
             return ""
         return f"{login}@{domain}"
 
-    # TODO - remove
-    def loginname_from_request(self, request: HTTPRequest) -> str:
+    def loginname_from_request(self, request: HTTPRequest) -> str:  # pragma: no cover
         warnings.warn("Use get_login_from_request", DeprecationWarning, stacklevel=2)
         return self.get_login_from_request(request)
 
     @property
     def idp_info(self) -> dict[str : dict[str:str]]:
         """Get supported IdPs"""
-        idps = api.portal.get_registry_record(interface=ISettings, name="idps")
+        idps = self.get_setting(name="idps") or []
         _idps = {}
         for idp in idps:
-            idp_id, name, logout = idp.split("|")
-            _idps[idp_id] = {"title": name, "logout": logout}
+            idp = idp.copy()
+            idp_id = idp.pop("domain")
+            _idps[idp_id] = idp
         return _idps
 
     def get_idp_domain_from_login(self, login_name: str) -> tuple[str, str]:
@@ -89,27 +115,21 @@ class SingleSignonUtility:
         return self.get_idp_domain_from_login(login_name)
 
     @staticmethod
-    def generate_key(_string: str) -> str:
-        """Generate a unique key. Used for linking user account to IdP account
-
-        Idea borrowed from portal_registration"""
+    def generate_password(_string: str) -> str:
+        """Generate a unique "password". User account must have a password field, even though we authenticate
+        only with SSO."""
         return hashlib.sha256(_string.encode("utf-8")).hexdigest()
-
-    @staticmethod
-    def get_setting(field: str) -> str:
-        """Helper method"""
-        return api.portal.get_registry_record(interface=ISettings, name=field)
 
     def get_url_logout(self, request: HTTPRequest) -> str:
         """Get the logout URL. This will be determined by the REQUEST headers and IdP settings"""
         login_name = self.get_login_from_request(request)
-        generic_logout = api.portal.get_registry_record(interface=ISettings, name="generic_logout")
+        generic_logout = self.get_setting(name="generic_logout")
         try:
             idp, login_name = self.get_idp_domain_from_login(login_name)
         except TypeError:
             return generic_logout
 
-        logout_url = self.idp_info[idp]["logout"] if idp in self.idp_info else generic_logout
+        logout_url = self.idp_info[idp]["idp_logout"] if idp in self.idp_info else generic_logout
 
         return logout_url
 
@@ -120,20 +140,19 @@ class SingleSignonUtility:
 
     def get_url_registration(self) -> str:
         """Optional - used in mail templates. Use this to direct a user to register with one of your IdPs"""
-        return api.portal.get_registry_record(interface=ISettings, name="registration_url")
+        return self.get_setting(name="registration_url")
 
     def get_idp_from_domain(self, domain: str) -> str:
         """Get all info (title, logout url) for the given domain"""
-        return self.idp_info[domain]["title"] if domain in self.idp_info else domain
+        return self.idp_info[domain]["name"] if domain in self.idp_info else domain
 
-    @staticmethod
-    def set_login_name(user_id: str, login_name: str) -> None:
-        """also set the email if we get it"""
-        pas = api.portal.get_tool("acl_users")
-        pas.updateLoginName(user_id, login_name)
+    def set_login_name(self, user_id: str, login_name: str) -> None:
+        """Login name is a property of a user"""
+        self.pas.updateLoginName(user_id, login_name)
 
     @staticmethod
     def send_portal_link(email: str = "") -> None:
+        """Send email with instructions on how to link their account"""
         usr = api.user.get_current()
         user_email = email or usr.getProperty("email", None)
         portal_title = api.portal.get_registry_record("plone.site_title")
@@ -152,11 +171,12 @@ class SingleSignonUtility:
                 immediate=False,
             )
 
-    def notify_relinked(self, usr, email, plone_view):
-        to_email = api.portal.get_registry_record(interface=ISettings, name="notify_relinked")
+    def notify_relinked(self, usr, email: str, plone_view: BrowserView):
+        """Send a "success" email notification"""
+        to_email = self.get_setting(name="notify_relinked")
         if to_email:
             portal_title = api.portal.get_registry_record("plone.site_title")
-            domain = self.extract_idp_login(usr.getUserName())[0]
+            domain = self.get_idp_domain_from_login(usr.getUserName())[0]
             idp = self.get_idp_from_domain(domain)
             subj = f"{portal_title} user has updated their account"
             msg = (
@@ -175,7 +195,8 @@ class SingleSignonUtility:
                 immediate=False,
             )
 
-    def purge_expired(self) -> None:
+    def purge_unlinked(self) -> None:
+        """Users who have not been linked in X days are deleted"""
         expired = []
         deleted = []
 
@@ -194,7 +215,7 @@ class SingleSignonUtility:
                 usr.setMemberProperties({"created_date": today})
                 date = today
 
-            if f"{NOT_LINKED}" in usr.getUserName() and (today - date).days >= expiry:
+            if NOT_LINKED in usr.getUserName() and (today - date).days >= expiry:
                 expired.append(usr.getProperty("email"))
                 deleted.append(usr.getId())
                 logger.info(
@@ -210,15 +231,24 @@ class SingleSignonUtility:
         if deleted:
             logger.info(f"Expired users purged from {portal.getId()}: {expired}")
 
-    @staticmethod
-    def disable_user_accounts() -> None:
+    def disable_user_accounts(self) -> None:
+        """Update user account active status based on days since activation/login
+
+        activation_date is a user property set on first activation, and updated on login through the
+        IAuthenticateCredentials plugin
+
+        exceptions:
+        - User property `service` can be set to True to skip this check
+        - Users with `Manager` role are never disabled
+        """
         today = datetime.date.today()
-        days_until_inactive = api.portal.get_registry_record(interface=ISettings, name="days_until_inactive")
-        days_until_disabled = api.portal.get_registry_record(interface=ISettings, name="days_until_disabled")
+        days_until_inactive = self.get_setting(name="days_until_inactive")
+        days_until_disabled = self.get_setting(name="days_until_disabled")
 
         for usr in api.user.get_users():
             date = usr.getProperty("activation_date")
             if date == "":
+                # one time fallback, if field was never set
                 usr.setMemberProperties({"activation_date": today})
                 date = today
             can_be_deactivated = "Manager" not in api.user.get_roles(username=usr.getId()) and not usr.getProperty(
@@ -230,13 +260,17 @@ class SingleSignonUtility:
             elif (today - date).days >= days_until_inactive and can_be_deactivated and user_status != DISABLED_STATUS:
                 usr.setMemberProperties({"active": INACTIVE_STATUS})
 
-    def no_challenge_header(self, request):
-        user_header = api.portal.get_registry_record(interface=ISettings, name="shib_header_user")
-        challenge_key = request.environ.get(user_header)
-        return challenge_key and not is_null(challenge_key)
+    def has_user_header(self, request):
+        user_key = request.environ.get(self.get_setting(name="shib_header_user"))
+        return user_key and not is_null(user_key)
 
 
 class MailTemplatesUtility:
+    @staticmethod
+    def get_setting(name: str) -> str:
+        """Helper method"""
+        return api.portal.get_registry_record(interface=ISSOSettings, name=name)
+
     subject = "\n".join((
         "From: {from_name}",
         "To: {to_name}",
@@ -252,25 +286,22 @@ class MailTemplatesUtility:
         "If {timeout} days have elapsed, please reply to this e-mail and request another link.",
     ))
 
-    @staticmethod
-    def get_format():
-        try:
-            mail_format = api.portal.get_registry_record(interface=ISettings, name="mail_format")
-        except api.exc.InvalidParameterException as err:
-            raise NoSSOMailTemplatesException(
-                "No single sign mailing formats have been defined for this portal."
-            ) from err
-        else:
-            mail_format = "ims.sso.idp.nosso"
+    def get_mailer(self):
+        """Get the mail templater"""
+        mail_format = self.get_setting(name="mail_format")
+        if not mail_format:
+            raise NoSSOMailTemplatesException("No mail templates configured")
 
-        return queryUtility(IMailTemplates, name=mail_format)
+        return getUtility(IMailTemplates, name=mail_format)
 
     def registered_notify(self) -> str:
-        mailer = self.get_format()
+        """Send notification email of registration"""
+        mailer = self.get_mailer()
         return mailer.registered_notify()
 
     def mail_relink(self) -> str:
-        mailer = self.get_format()
+        """Send account relink email"""
+        mailer = self.get_mailer()
         return mailer.mail_relink()
 
     def mail_form(self, template: str, params: dict):
@@ -278,6 +309,19 @@ class MailTemplatesUtility:
 
 
 class ReactivationUtility:
+    """This utility allows users to auto reactivate themselves when they have an inactive account. For
+    this to happen we need to consider that these users will be anonymous to Plone, because the
+    IAuthenticationCredentials plugin has rejected them due to their `status`.
+
+    Steps to take:
+    1. Identify the user by id@domain from the Shibboleth headers
+    2. Generate a unique key for this user and register it with the portal annotations. Set an expiration date
+    3. Send the user a link to the reactivation view that contains the unique key
+    4. Validate the key matches the user and is not expired and has not since become disabled
+    5. Update the user's `status` to `active`
+
+    """
+
     annotation_key = "ReactivationUtility"
 
     @property
@@ -286,6 +330,7 @@ class ReactivationUtility:
 
     @property
     def user_id(self) -> str:
+        """The annotation value here is the id@domain login name we get from Shibboleth headers"""
         annotations = IAnnotations(getRequest())
         try:
             if usr_id := annotations[AUTHENTICATED_KEY]:
@@ -303,10 +348,18 @@ class ReactivationUtility:
             return randomstring, expiry
 
     def _expired(self, expiry: datetime) -> bool:
-        now = datetime.datetime.utcnow()
-        return now >= expiry
+        """Check that key has not expired"""
+        try:
+            return datetime.datetime.now() >= expiry
+        except TypeError:
+            return datetime.datetime.now(datetime.UTC) >= expiry
 
     def _validate(self, activation_key: str) -> bool:
+        """Check that:
+        1. We have an activation key for this user in the annotations
+        2. The key has not expired
+        3. The user has not since been disabled
+        """
         annotations = IAnnotations(self.portal)
         try:
             rec = annotations[self.annotation_key][self.user_id]
@@ -319,6 +372,7 @@ class ReactivationUtility:
         return activation_key == _key and not self._expired(expired) and not disabled
 
     def set_activation_key(self, activation_key: str) -> datetime.datetime | None:
+        """Register the activation key for this user in the portal annotations. Set an expiration date"""
         if not self.user_id:
             return
         annotations = IAnnotations(self.portal)
@@ -332,6 +386,7 @@ class ReactivationUtility:
         return expiry
 
     def get_activation_key(self) -> str | None:
+        """Get the key from annotations"""
         if not self.user_id:
             return
         annotations = IAnnotations(self.portal)
@@ -352,7 +407,8 @@ class ReactivationUtility:
             return True
         return False
 
-    def purge_annotations(self) -> None:
+    def purge_activation_keys(self) -> None:
+        """Remove expired activation keys"""
         annotations = IAnnotations(self.portal)
         try:
             rec = annotations[self.annotation_key]
@@ -371,12 +427,21 @@ class ReactivationUtility:
             for userid in to_del:
                 del rec[userid]
 
+    def current_user_status(self):
+        """Get the `active` value for the user using the user id in annotations."""
+        annotations = IAnnotations(getRequest())
+        if AUTHENTICATED_KEY in annotations:
+            userid = annotations[AUTHENTICATED_KEY]
+            user = api.user.get(userid)
+            return user.getProperty("active")
+        return "unknown"
+
 
 def notify_activated(user: MemberData) -> None:
     """Notify a user that has been reactivated"""
     user_email = user.getProperty("email", None)
     portal_title = api.portal.get_registry_record("plone.site_title")
-    _notify_activated = api.portal.get_registry_record(name="notify_on_activation", interface=ISettings)
+    _notify_activated = api.portal.get_registry_record(name="notify_on_activation", interface=ISSOSettings)
     portal = api.portal.get()
     if user_email and _notify_activated:
         subj = f"Account Reactivation for {portal_title}"
@@ -395,7 +460,7 @@ def notify_activated(user: MemberData) -> None:
 
 def is_null(value: str, request: HTTPRequest = None) -> bool:
     """user is null value in Shibboleth"""
-    null_header = api.portal.get_registry_record(interface=ISettings, name="shib_header_null")
+    null_header = api.portal.get_registry_record(interface=ISSOSettings, name="shib_header_null")
     if value is None:
         return True
     if not request:

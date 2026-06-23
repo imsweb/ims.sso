@@ -1,14 +1,16 @@
 import datetime
 
 import plone.api as api
+from AccessControl import getSecurityManager
 from plone.app.users.browser.register import AddUserForm as BaseAddUserForm
+from Products.CMFCore.permissions import ManagePortal
+from Products.CMFCore.utils import getToolByName
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from Products.statusmessages.interfaces import IStatusMessage
 from z3c.form import button
+from zExceptions import Forbidden
 from zope.component import getUtility
 
 from ..configs import _
-from ..errors import NoSSOMailTemplatesException
 from ..interfaces import IMailTemplatesUtility, ISingleSignonUtility
 
 
@@ -76,20 +78,12 @@ class AddUserForm(BaseAddUserForm):
         data["mail_me"] = True
         base_method = super().handle_join_success
 
-        try:
-            getUtility(IMailTemplatesUtility).get_format()  # base_method swallows this errors
-        except NoSSOMailTemplatesException:
-            api.portal.show_message(
-                _("No IDPs designated for message formatting. Consult administrator."),
-                self.request,
-                type="error",
-            )
-            return
+        getUtility(IMailTemplatesUtility).get_mailer()
         data["fullname"] = data["last_name"]
         if data.get("first_name"):
             data["fullname"] += ", " + data["first_name"]
         base_method(data)
-        self.sso.initialize_login(data)
+        self.sso.initialize_login(data["user_id"])
 
         member = api.user.get(userid=data["user_id"])
         member.setMemberProperties({
@@ -113,11 +107,6 @@ class AddUserForm(BaseAddUserForm):
     @button.buttonAndHandler(_("label_register", default="Register"), name="register")
     def action_join(self, action):
         # we overwrite the super action_join so it doesn't redirect with search string
-        # TODO - move this to ims.users, it is not sso related
-        from AccessControl import getSecurityManager
-        from Products.CMFCore.permissions import ManagePortal
-        from Products.CMFCore.utils import getToolByName
-        from zExceptions import Forbidden
 
         data, _errors = self.extractData()
         # extra password validation
@@ -128,7 +117,7 @@ class AddUserForm(BaseAddUserForm):
             return
 
         match = api.portal.get_tool("acl_users").searchUsers(email=data["email"])
-        if match and not self.request.get("allow_match"):
+        if match and not self.request.get("form.widgets.allow_match"):
             self.confirmation_required = True
 
             def wrap_name(name, match):
@@ -161,12 +150,12 @@ class AddUserForm(BaseAddUserForm):
                         raise Forbidden
                     portal_groups.addPrincipalToGroup(user_id, groupname, self.request)
         except (AttributeError, ValueError) as err:
-            IStatusMessage(self.request).addStatusMessage(err, type="error")
+            api.portal.show_message(err, type="error")
             return
-        IStatusMessage(self.request).addStatusMessage(_("User added."), type="info")
+        api.portal.show_message("User added.")
         self.request.response.redirect(self.context.absolute_url() + "/@@usergroup-userprefs")
 
     @button.buttonAndHandler("Cancel", name="cancel")
     def handleCancel(self, action):
-        IStatusMessage(self.request).addStatusMessage("User registration cancelled.", "info")
+        api.portal.show_message("User registration cancelled.")
         self.request.response.redirect(self.context.absolute_url() + "/@@usergroup-userprefs")

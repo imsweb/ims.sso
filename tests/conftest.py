@@ -1,7 +1,9 @@
 import pytest
-from ims.sso.interfaces import ISettings, ISingleSignonUtility
+from ims.sso.interfaces import ISingleSignonUtility, ISSOSettings
 from ims.sso.testing import FUNCTIONAL_TESTING, INTEGRATION_TESTING
 from plone import api
+from Products.CMFPlone.tests.utils import MockMailHost
+from Products.MailHost.interfaces import IMailHost
 from pytest_plone import fixtures_factory
 from zope.component import getUtility
 
@@ -17,6 +19,11 @@ globals().update(
         (INTEGRATION_TESTING, "integration"),
     ))
 )
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _keep_layers_for_session(integration_session):
+    """Keep the expensive layer set up for the whole session."""
 
 
 @pytest.fixture
@@ -43,7 +50,7 @@ def plugin(pas):
 @pytest.fixture
 def get_setting(portal):
     def get_setting(name):
-        return api.portal.get_registry_record(interface=ISettings, name=name)
+        return api.portal.get_registry_record(interface=ISSOSettings, name=name)
 
     return get_setting
 
@@ -76,3 +83,26 @@ def shib_header_idp(get_setting):
 @pytest.fixture
 def shib_header_null(get_setting):
     return get_setting("shib_header_null")
+
+
+@pytest.fixture
+def mock_mail(portal):
+    mockmailhost = MockMailHost("MailHost")
+
+    if not getattr(mockmailhost, "smtp_host", None):
+        mockmailhost.smtp_host = "localhost"
+
+    portal.MailHost = mockmailhost
+    sm = portal.getSiteManager()
+    sm.registerUtility(component=mockmailhost, provided=IMailHost)
+
+    mailhost = api.portal.get_tool("MailHost")
+    api.portal.set_registry_record(
+        "plone.email_from_name",
+        "Portal Owner",
+    )
+    api.portal.set_registry_record(
+        "plone.email_from_address",
+        "sender@example.org",
+    )
+    return mailhost
