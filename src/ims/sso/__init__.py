@@ -2,7 +2,7 @@ from Products.PluggableAuthService import registerMultiPlugin
 
 from . import plugin
 
-__version__ = "1.0.0a"
+__version__ = "1.0.0a1"
 
 
 def initialize(context):
