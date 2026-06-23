@@ -1,0 +1,1 @@
+See documentation at https://imsweb.github.io/ims.sso/
