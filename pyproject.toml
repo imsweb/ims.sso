@@ -110,6 +110,9 @@ check = false
 path = "src/ims/sso/__init__.py"
 
 [tool.hatch.build]
+strict-naming = false
+
+[tool.hatch.build.targets.wheel]
 packages = ["src/ims"]
 
 [tool.hatch.envs.default.scripts]
