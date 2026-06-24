@@ -7,24 +7,28 @@ Shibboleth headers.
 PluggableAuthService has a distinction between login name and user id. It should be noted that Plone generally treats
 these as identical. It is still possible to use login names in Plone, but some interface changees may be preferred for UX.
 
-To ensure login names are unique, the IdP domain is used as a namespace. For example, a user
-with user id `user1` logs in with a service that sends the Shibboleth IdP header as `myidp.foobar.com` and Shibboleth user header
-as `myuser`. The Plone user id remains `user1` while the login name is `myuser@myidp.foobar.com`. Consider 
-another site user logging in with a different service that also returns the user header as `myuser`. Without the IdP
-namespace they would have been able to access the first user's account.
+.. figure:: images/acl.png
+   :alt: acl_users
+   
+   Login name must be unique. Uses IdP as a namespace
+
+Note that the IdP domain is used as a namespace for the login name. This means that the user has access to the site only
+when logging in with their linked IdP. It also means that someone with the same id from *a different IdP* will *not*
+get access to that user account.
+
 
 Registration
 ------------
 
-A site admin that adds a user probably does not know the details of that user's IdP account, or maybe even what IdP
-that user will use. Thus, we need a process to link a Plone account to an IdP account. On user registration,
+When adding a new user a site admin probably does not know the details of that user's IdP account, or maybe even what IdP
+that user will use. This will instead be supplied by the user during the registration process. When adding a new user,
 the user is sent an email (see `Email Messages <email.html>`_) with a URL to link their account. This process is
-similar to the reset password feature, and in fact uses the PasswordResetTool to generate a unique key for that user.
+similar to the default Plone reset password behavior and in fact uses the PasswordResetTool to generate a unique key for that user.
 When visiting the site from that URL they will first be directed through Shibboleth, either by the challenge plugin
-or by virtue of Apache/Nginx settings. The `@@linkaccount` consumes and invalidates the key and updates the user's login
-name with data from the Shibb headers.
+or by virtue of Apache/Nginx settings. The request sends them to the  ``@@linkaccount`` view which consumes and invalidates the key 
+and updates the user's login name. 
 
-Before registration is complete, users will be given a unique, unsable login name. The domain is always @not.linked to allow
+Before registration is complete, users will be given a unique, unsable login name. The domain is always ``@not.linked`` to allow
 unlinked users to be easily identified.
 
 Re-linking accounts

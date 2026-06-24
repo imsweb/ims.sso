@@ -47,3 +47,9 @@ Select option in control panel
 ------------------------------
 
 Once registered, this option will be available as an option in the Mail Templates field.
+
+
+.. figure:: images/mail_format.png
+   :alt: mail_format
+
+   The vocabulary finds all registered providers of IMailTemplates
