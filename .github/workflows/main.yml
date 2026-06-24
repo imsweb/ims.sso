@@ -45,8 +45,8 @@ jobs:
         source .venv/bin/activate
         pytest --cov=. --cov-report=html
     - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./htmlcov
-          publish_branch: gh-pages
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./htmlcov
+        publish_branch: gh-pages
