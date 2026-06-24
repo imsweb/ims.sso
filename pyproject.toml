@@ -1,5 +1,6 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "ims.sso"
@@ -105,8 +106,25 @@ name = "Other tasks"
 showcontent = false
 check = false
 
-[tool.setuptools.dynamic]
-version = {attr = "ims.sso.__version__"}
+[tool.hatch.version]
+path = "src/ims/sso/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ims"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = "coverage html"
+cov = [
+    "test-cov",
+    "cov-report",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
