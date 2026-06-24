@@ -1,5 +1,5 @@
-# ims.sso 1.0.0 (2026-06-23)
+# ims.sso 1.0.0a1 (2026-06-23)
 
 ## Feature
 
-- Add additional documentation images
+- Initial development
