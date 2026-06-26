@@ -1,0 +1,148 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linking accounts &mdash; ims.sso  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User fields" href="fields.html" />
+    <link rel="prev" title="ims.sso" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ims.sso
+              <img src="_static/plone.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Linking accounts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#registration">Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#re-linking-accounts">Re-linking accounts</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fields.html">User fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="activation.html">Auto Re-Activation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="email.html">Email Messages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="browser.html">Browser Changes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ims.sso</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Linking accounts</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/linking.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="linking-accounts">
+<h1>Linking accounts<a class="headerlink" href="#linking-accounts" title="Link to this heading"></a></h1>
+<p>The major underlying philosophy of this addon is Plone user accounts must be linked to a single Identity Provider (IdP) account via
+Shibboleth headers.</p>
+<p>PluggableAuthService has a distinction between login name and user id. It should be noted that Plone generally treats
+these as identical. It is still possible to use login names in Plone, but some interface changees may be preferred for UX.</p>
+<figure class="align-default" id="id1">
+<img alt="acl_users" src="_images/acl.png" />
+<figcaption>
+<p><span class="caption-text">Login name must be unique. Uses IdP as a namespace</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>Note that the IdP domain is used as a namespace for the login name. This means that the user has access to the site only
+when logging in with their linked IdP. It also means that someone with the same id from <em>a different IdP</em> will <em>not</em>
+get access to that user account.</p>
+<section id="registration">
+<h2>Registration<a class="headerlink" href="#registration" title="Link to this heading"></a></h2>
+<p>When adding a new user a site admin probably does not know the details of that user’s IdP account, or maybe even what IdP
+that user will use. This will instead be supplied by the user during the registration process. When adding a new user,
+the user is sent an email (see <a class="reference external" href="email.html">Email Messages</a>) with a URL to link their account. This process is
+similar to the default Plone reset password behavior and in fact uses the PasswordResetTool to generate a unique key for that user.
+When visiting the site from that URL they will first be directed through Shibboleth, either by the challenge plugin
+or by virtue of Apache/Nginx settings. The request sends them to the  <code class="docutils literal notranslate"><span class="pre">&#64;&#64;linkaccount</span></code> view which consumes and invalidates the key
+and updates the user’s login name.</p>
+<p>Before registration is complete, users will be given a unique, unsable login name. The domain is always <code class="docutils literal notranslate"><span class="pre">&#64;not.linked</span></code> to allow
+unlinked users to be easily identified.</p>
+</section>
+<section id="re-linking-accounts">
+<h2>Re-linking accounts<a class="headerlink" href="#re-linking-accounts" title="Link to this heading"></a></h2>
+<p>Re-linking uses the same process as registration, except that the email instructions may be different. Login names
+are NOT changed until the relink unique key is consumed.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="ims.sso" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fields.html" class="btn btn-neutral float-right" title="User fields" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

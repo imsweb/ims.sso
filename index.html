@@ -1,0 +1,165 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ims.sso &mdash; ims.sso  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Linking accounts" href="linking.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            ims.sso
+              <img src="_static/plone.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="linking.html">Linking accounts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fields.html">User fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="activation.html">Auto Re-Activation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="email.html">Email Messages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="browser.html">Browser Changes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">ims.sso</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ims.sso</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ims-sso">
+<h1>ims.sso<a class="headerlink" href="#ims-sso" title="Link to this heading"></a></h1>
+<p>Shibboleth and Plone integration</p>
+<p>Goals:</p>
+<ul>
+<li><p>Plone user accounts must link to a single user from a single IdP</p></li>
+<li><p>Users must be explicitly authorized. Logging in with an IdP does not create a Plone account, you must be registered by an admin. Plone accounts are thus a subset of IdP accounts</p></li>
+<li><p>Accounts have <strong>status</strong> which aims to restrict access to accounts that may no longer need it.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>User accounts must be <code class="docutils literal notranslate"><span class="pre">active</span></code> to pass authentication with Plone PAS (i.e. they can’t login to Plone if not active)</p></li>
+<li><p>User accounts not actively being used are demoted in status based on days since last login (configurable) as a security measure</p></li>
+<li><p>Inactive accounts can be auto-reactivated by verifying access to their email account. The default time to make inactive is 90 days.</p></li>
+<li><p>Disabled accounts require Site Administrator action to be re-activated. The default time to make disabled is 2 years</p></li>
+<li><p>Accounts can be manually disabled instead of deleting the user. This preserves various metadata.</p></li>
+<li><p>Accounts marked as <code class="docutils literal notranslate"><span class="pre">service</span></code> are never demoted</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>User’s overview page is overhauled to support active status searching and to display IdP information.</p></li>
+</ul>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="linking.html">Linking accounts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="linking.html#registration">Registration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="linking.html#re-linking-accounts">Re-linking accounts</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fields.html">User fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="activation.html">Auto Re-Activation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="activation.html#user-workflow">User Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activation.html#backend">Backend</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="email.html">Email Messages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="email.html#registering-with-zcml">Registering with zcml</a></li>
+<li class="toctree-l2"><a class="reference internal" href="email.html#select-option-in-control-panel">Select option in control panel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="browser.html">Browser Changes</a></li>
+</ul>
+</div>
+<p>Test coverage:</p>
+<blockquote>
+<div><p><a class="reference external" href="coverage">coverage</a></p>
+</div></blockquote>
+<section id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="linking.html" class="btn btn-neutral float-right" title="Linking accounts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
