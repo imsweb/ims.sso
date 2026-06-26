@@ -7,6 +7,8 @@ Shibboleth and Plone integration
 Goals:
 
 * Plone user accounts must link to a single user from a single IdP
+* Users must be explicitly authorized. Logging in with an IdP does not create a Plone account, you must be registered by an admin. 
+Plone accounts are thus a subset of IdP accounts
 * Accounts have **status** which aims to restrict access to accounts that may no longer need it.
 
    * User accounts must be ``active`` to pass authentication with Plone PAS (i.e. they can't login to Plone if not active)
