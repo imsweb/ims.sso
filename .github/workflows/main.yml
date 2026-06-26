@@ -48,6 +48,9 @@ jobs:
         source .venv/bin/activate
         pytest --cov=. --cov-report=html
 
+  docs:
+    needs: test
+    steps:
     - name: Install dependencies
       run: |
         pip install sphinx sphinx_rtd_theme sphinx-tabs sphinx-copybutton
@@ -55,9 +58,8 @@ jobs:
     - name: Sphinx build
       run: |
         sphinx-build docs _build
-        ls -la htmlcov/
         cp -a htmlcov/ _build/htmlcov
-        ls -la _build/
+        ls -la _build/htmlcov/
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
