@@ -105,6 +105,8 @@ class ISSOSettings(model.Schema):
                 "properties": {
                     "domain": {"description": "Domain", "type": "string"},
                     "name": {"description": "Name", "type": "string"},
+                    "description": {"description": "Description", "type": "string"},
+                    "registration": {"description": "Registration URL", "type": "string"},
                     "idp_login": {"description": "IdP Login URL", "type": "string"},
                     "idp_logout": {"description": "IdP Logout URL", "type": "string"},
                 },
