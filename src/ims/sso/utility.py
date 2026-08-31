@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import logging
 import warnings
+from dataclasses import asdict
 from urllib.parse import urlparse
 
 import DateTime
@@ -11,7 +12,7 @@ from plone.uuid.interfaces import IUUIDGenerator
 from Products.Five import BrowserView
 from Products.PlonePAS.tools.memberdata import MemberData
 from zope.annotation.interfaces import IAnnotations
-from zope.component import getUtility
+from zope.component import getUtilitiesFor, getUtility
 from zope.globalrequest import getRequest
 from ZPublisher.HTTPRequest import HTTPRequest
 
@@ -24,7 +25,7 @@ from .configs import (
     NOT_LINKED,
 )
 from .errors import NoSSOMailTemplatesException
-from .interfaces import IMailTemplates, ISSOSettings
+from .interfaces import IMailTemplates, ISsoIdp, ISSOSettings
 
 send_portal_link_msg = """Your account has been successfully updated on {}.
 
@@ -92,13 +93,10 @@ class SingleSignonUtility:
     @property
     def idp_info(self) -> dict[str : dict[str:str]]:
         """Get supported IdPs"""
-        idps = self.get_setting(name="idps") or []
-        _idps = {}
-        for idp in idps:
-            idp = idp.copy()
-            idp_id = idp.pop("domain")
-            _idps[idp_id] = idp
-        return _idps
+        idps = {}
+        for idp_id, idp in getUtilitiesFor(ISsoIdp):
+            idps[idp_id] = asdict(idp)
+        return idps
 
     def get_idp_domain_from_login(self, login_name: str) -> tuple[str, str]:
         """If given wohnlice@adfs.omni.imsweb.com, return ["wohnlice", "adfs.omni.imsweb.com"]"""
@@ -129,7 +127,7 @@ class SingleSignonUtility:
         except TypeError:
             return generic_logout
 
-        logout_url = self.idp_info[idp]["idp_logout"] if idp in self.idp_info else generic_logout
+        logout_url = self.idp_info[idp].get("idp_logout") if idp in self.idp_info else generic_logout
 
         return logout_url
 
