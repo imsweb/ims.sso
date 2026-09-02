@@ -2,9 +2,10 @@ from email import message_from_bytes
 from email.header import decode_header
 
 import pytest
-from ims.sso.interfaces import ISSOSettings
 from plone import api
 from plone.testing import zope
+
+from ims.sso.interfaces import ISSOSettings
 
 test_login = "guido"
 test_user_id = "someCrazyUserIdForGuido"

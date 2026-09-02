@@ -1,7 +1,8 @@
-from ims.sso.interfaces import ISSOSettings
 from plone import api
 from Products.Sessions import install_browser_id_manager
 from transaction import commit
+
+from ims.sso.interfaces import ISSOSettings
 
 
 class TestLogin:
