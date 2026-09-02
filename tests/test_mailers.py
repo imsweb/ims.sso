@@ -1,11 +1,12 @@
 from email import message_from_bytes
 
 import pytest
+from plone import api
+from zope.component import getUtility, provideUtility
+
 from ims.sso.configs import ACTIVE_STATUS
 from ims.sso.errors import NoSSOMailTemplatesException
 from ims.sso.interfaces import IMailTemplates, IMailTemplatesUtility, ISSOSettings
-from plone import api
-from zope.component import getUtility, provideUtility
 
 
 class MyIdpMailTemplates:
@@ -45,21 +46,11 @@ class TestMailers:
         )
 
     @pytest.fixture(autouse=True)
-    def setup_settings(self, portal):
+    def setup_settings(self, portal, fake_idp):
         singleton = MyIdpMailTemplates()
-        provideUtility(singleton, provides=IMailTemplates, name="ims.sso.test_idp")
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.test_idp")
-        api.portal.set_registry_record(
-            name="idps",
-            interface=ISSOSettings,
-            value=[
-                {
-                    "domain": "foo.bar",
-                    "name": "MyIdp",
-                    "idp_logout": "https://foo.bar/logout",
-                }
-            ],
-        )
+        provideUtility(singleton, provides=IMailTemplates, name="ims.sso.test_idps")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.test_idps")
+
         api.portal.set_registry_record(
             name="generic_logout",
             interface=ISSOSettings,
@@ -92,12 +83,12 @@ class TestMailers:
         assert "If you do not have a MyIdp account" in msg
 
     def test_default_template_registered_notify(self):
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.mailers.nosso")
         msg = self.utility.registered_notify()
         assert msg
 
     def test_default_template_mail_relink(self):
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.mailers.nosso")
         msg = self.utility.mail_relink()
         assert msg
 

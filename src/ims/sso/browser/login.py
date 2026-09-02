@@ -121,11 +121,7 @@ class LoginUrl(BrowserView):
         acl = api.portal.get_tool("acl_users")
         if "ims_sso_plugin" not in acl.objectIds():
             return api.portal.get().absolute_url()
-        login_url = acl.ims_sso_plugin.login_url(self.request.ACTUAL_URL)
-        # stops loop if they try to login to an unauth page
-        # if "target=" in login_url and self.request.get("came_from"):
-        #     return login_url.split("target=")[0] + "target=" + self.request["came_from"]
-        # else:
+        login_url = acl.ims_sso_plugin.login_url(api.portal.get().absolute_url())
         return login_url
 
 

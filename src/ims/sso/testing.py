@@ -1,4 +1,3 @@
-import ims.sso
 from plone.app.contenttypes.testing import PLONE_APP_CONTENTTYPES_FIXTURE
 from plone.app.robotframework.testing import REMOTE_LIBRARY_BUNDLE_FIXTURE
 from plone.app.testing import (
@@ -10,6 +9,8 @@ from plone.app.testing import (
     setRoles,
 )
 from plone.testing.zope import WSGI_SERVER_FIXTURE, installProduct
+
+import ims.sso
 
 
 class UsersSiteLayer(PloneSandboxLayer):

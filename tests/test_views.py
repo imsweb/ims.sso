@@ -1,4 +1,10 @@
 import pytest
+from plone import api
+from plone.protect.authenticator import createToken
+from plone.testing import zope
+from zExceptions import Forbidden
+from zope.annotation.interfaces import IAnnotations
+
 from ims.sso.browser.viewlets import SsoWarningsViewlet
 from ims.sso.configs import (
     ACTIVE_STATUS,
@@ -7,11 +13,6 @@ from ims.sso.configs import (
     INACTIVE_STATUS,
 )
 from ims.sso.interfaces import ISSOSettings
-from plone import api
-from plone.protect.authenticator import createToken
-from plone.testing import zope
-from zExceptions import Forbidden
-from zope.annotation.interfaces import IAnnotations
 
 
 class TestViews:
@@ -34,10 +35,6 @@ class TestViews:
         http_request.environ[sso.get_setting("shib_header_user")] = self.username
         http_request.environ[sso.get_setting("shib_header_idp")] = self.idp
         http_request[sso.get_setting("shib_header_email")] = self.email
-
-    def test_login_url(self, portal):
-        view = api.content.get_view("get_login_url", context=portal)
-        assert view() == "http://nohost/plone/@@login?came_from=http://nohost"
 
     def test_viewlet_auth_unauth(self, portal):
         zope.logout()

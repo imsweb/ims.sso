@@ -3,10 +3,11 @@ import datetime
 import pytest
 from bs4 import BeautifulSoup
 from DateTime import DateTime
-from ims.sso.configs import ACTIVE_STATUS, DISABLED_STATUS, INACTIVE_STATUS, NOT_LINKED
-from ims.sso.interfaces import ISSOSettings
 from plone import api
 from transaction import commit
+
+from ims.sso.configs import ACTIVE_STATUS, DISABLED_STATUS, INACTIVE_STATUS, NOT_LINKED
+from ims.sso.interfaces import ISSOSettings
 
 
 class TestUserGroupsPage:
@@ -195,7 +196,7 @@ class TestUserGroupsPage:
                 assert not ctrl(name="users.active:records", index=idx).disabled
 
     def test_reregister(self, browser, setup_users, mock_mail):
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.mailers.nosso")
         commit()
 
         browser.open(self.view_url)

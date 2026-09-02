@@ -1,11 +1,15 @@
+from dataclasses import dataclass
+
 import pytest
-from ims.sso.interfaces import ISingleSignonUtility, ISSOSettings
-from ims.sso.testing import FUNCTIONAL_TESTING, INTEGRATION_TESTING
 from plone import api
 from Products.CMFPlone.tests.utils import MockMailHost
 from Products.MailHost.interfaces import IMailHost
 from pytest_plone import fixtures_factory
-from zope.component import getUtility
+from zope.component import getUtility, provideUtility
+
+from ims.sso.idps import BaseIdp
+from ims.sso.interfaces import ISingleSignonUtility, ISsoIdp, ISSOSettings
+from ims.sso.testing import FUNCTIONAL_TESTING, INTEGRATION_TESTING
 
 PACKAGE_NAME = "ims.sso"
 test_login = "guido"
@@ -43,7 +47,7 @@ def sso(portal):
 
 @pytest.fixture
 def plugin(pas):
-    pas.source_users.addUser(test_user_id, test_login + "@adfs.imsweb.com", "password")
+    pas.source_users.addUser(test_user_id, test_login + "@foo.bar", "password")
     return pas.ims_sso_plugin
 
 
@@ -106,3 +110,28 @@ def mock_mail(portal):
         "sender@example.org",
     )
     return mailhost
+
+
+@dataclass
+class TestIdp(BaseIdp):
+    name: str = "Test IDP"
+    idp_logout: str = "https://foo.bar/logout"
+
+
+@pytest.fixture
+def fake_idp(portal) -> TestIdp:
+    utility = TestIdp()
+    provideUtility(utility, provides=ISsoIdp, name="foo.bar")
+    return utility
+
+
+@dataclass
+class TestIdpNoUpdate(BaseIdp):
+    update_email: bool = False
+
+
+@pytest.fixture
+def fake_idp_no_update(portal) -> TestIdpNoUpdate:
+    utility = TestIdpNoUpdate()
+    provideUtility(utility, provides=ISsoIdp, name="foo.bar")
+    return utility
