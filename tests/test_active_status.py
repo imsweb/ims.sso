@@ -28,6 +28,12 @@ class TestActivation:
             roles=["Member", "Manager"],
             properties={"active": "active"},
         )
+        api.user.create(
+            username="service",
+            email="noreply@nohost.com",
+            roles=["Member", "Manager"],
+            properties={"active": "active", "service": True},
+        )
         # os.environ["PLONE_CSRF_DISABLED"] = "true"
 
     def test_deactivate(self, portal):
@@ -43,9 +49,18 @@ class TestActivation:
         view = api.content.get_view("usergroup-userprefs", context=portal)
         view.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
         view.request.method = "POST"
-        rec = RequestRecord(id="manager", reset_email="noreply@nohost.com", active="active")
+        rec = RequestRecord(id="manager", reset_email="noreply@nohost.com", active="inactive")
         view.manageUser(users=(rec,))
         assert api.user.get("manager").getProperty("active") == "active"
+
+    def test_cant_deactivate_service_account(self, portal):
+        """User cannot deactivate a servive account"""
+        view = api.content.get_view("usergroup-userprefs", context=portal)
+        view.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
+        view.request.method = "POST"
+        rec = RequestRecord(id="service", reset_email="noreply@nohost.com", active="inactive")
+        view.manageUser(users=(rec,))
+        assert api.user.get("service").getProperty("active") == "active"
 
     def test_cant_deactivate_without_permission(self, portal):
         """User must have permission to deactivate/reactivate"""
