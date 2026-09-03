@@ -69,9 +69,17 @@ class TestCron:
         self.user2.setMemberProperties({
             "activation_date": datetime.date.today() - datetime.timedelta(self.disabled_days + 1)
         })
+        self.manager.setMemberProperties({
+            "activation_date": datetime.date.today() - datetime.timedelta(self.disabled_days + 1)
+        })
+        self.service.setMemberProperties({
+            "activation_date": datetime.date.today() - datetime.timedelta(self.disabled_days + 1)
+        })
         view()
         assert api.user.get("user1").getProperty("active") == "inactive"
         assert api.user.get("user2").getProperty("active") == "disabled"
+        assert api.user.get("manager").getProperty("active") == "active"
+        assert api.user.get("service").getProperty("active") == "active"
 
     def test_purge_activation_keys(self, portal, view):
         annotations = IAnnotations(portal)
