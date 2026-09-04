@@ -28,12 +28,6 @@ class TestActivation:
             roles=["Member", "Manager"],
             properties={"active": "active"},
         )
-        api.user.create(
-            username="service",
-            email="noreply@nohost.com",
-            roles=["Member", "Manager"],
-            properties={"active": "active", "service": True},
-        )
         # os.environ["PLONE_CSRF_DISABLED"] = "true"
 
     def test_deactivate(self, portal):
