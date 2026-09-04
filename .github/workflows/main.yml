@@ -60,8 +60,6 @@ jobs:
     - name: Sphinx build
       run: |
         sphinx-build docs _build
-        cp -a htmlcov/ _build/htmlcov
-        ls -la _build/htmlcov/
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
