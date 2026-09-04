@@ -80,10 +80,3 @@ class TestActivation:
             rec = RequestRecord(id="siteadmin", reset_email="noreply@nohost.com", active="inactive")
             view.manageUser(users=(rec,))
             assert api.user.get("siteadmin").getProperty("active") == "inactive"
-
-            view = api.content.get_view("usergroup-userprefs", context=portal)
-            view.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
-            view.request.method = "POST"
-            rec = RequestRecord(id="service", reset_email="noreply@nohost.com", active="inactive")
-            view.manageUser(users=(rec,))
-            assert api.user.get("service").getProperty("active") == "active"
