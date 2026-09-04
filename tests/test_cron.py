@@ -91,7 +91,6 @@ class TestCron:
         assert api.user.get("manager").getProperty("active") == "active"
         assert api.user.get("service").getProperty("active") == "active"
 
-    def test_service_account_off(self  ):
 
     def test_purge_activation_keys(self, portal, view):
         annotations = IAnnotations(portal)
