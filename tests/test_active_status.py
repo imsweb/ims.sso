@@ -54,7 +54,7 @@ class TestActivation:
         assert api.user.get("manager").getProperty("active") == "active"
 
     def test_cant_deactivate_service_account(self, portal):
-        """User cannot deactivate a servive account"""
+        """User cannot deactivate a service account"""
         view = api.content.get_view("usergroup-userprefs", context=portal)
         view.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
         view.request.method = "POST"
@@ -80,3 +80,10 @@ class TestActivation:
             rec = RequestRecord(id="siteadmin", reset_email="noreply@nohost.com", active="inactive")
             view.manageUser(users=(rec,))
             assert api.user.get("siteadmin").getProperty("active") == "inactive"
+
+            view = api.content.get_view("usergroup-userprefs", context=portal)
+            view.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
+            view.request.method = "POST"
+            rec = RequestRecord(id="service", reset_email="noreply@nohost.com", active="inactive")
+            view.manageUser(users=(rec,))
+            assert api.user.get("service").getProperty("active") == "active"
