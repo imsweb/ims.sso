@@ -230,7 +230,10 @@
                 </div>
               </div>
 
-              <input type="hidden" name="submitted" value=1"/>
+              <input name="submitted"
+                     type="hidden"
+                     value='1"/'
+              />
             </form>
             <form class="enableAutoFocus pat-formunloadalert"
                   id="users_manage"
@@ -499,21 +502,21 @@
                   <div class="form-check pt-1"
                        id="manage-status"
                   >
-                              <input class="form-check-input"
-                                     id="manage-users-${opt/value}"
-                                     checked
-                                     name="active_status:list"
-                                     type="checkbox"
-                                     value="${opt/value}"
-                                     tal:condition="opt/selected"
-                              />
-                              <input class="form-check-input"
-                                     id="manage-users-${opt/value}"
-                                     name="active_status:list"
-                                     type="checkbox"
-                                     value="${opt/value}"
-                                     tal:condition="not:opt/selected"
-                              />
+                    <input class="form-check-input"
+                           id="manage-users-${opt/value}"
+                           checked
+                           name="active_status:list"
+                           type="checkbox"
+                           value="${opt/value}"
+                           tal:condition="opt/selected"
+                    />
+                    <input class="form-check-input"
+                           id="manage-users-${opt/value}"
+                           name="active_status:list"
+                           type="checkbox"
+                           value="${opt/value}"
+                           tal:condition="not:opt/selected"
+                    />
                     <label class="form-check-label"
                            for="manage-users-${opt/value}"
                     >${opt/title}</label>
@@ -554,7 +557,10 @@
               </div>
 
               <input tal:replace="structure context/@@authenticator/authenticator" />
-              <input type="hidden" name="submitted" value=1"/>
+              <input name="submitted"
+                     type="hidden"
+                     value='1"/'
+              />
 
             </form>
           </div>
