@@ -15,8 +15,9 @@ class TestLogin:
     def test_login_url(self, portal):
         view = api.content.get_view(context=portal, name="get_login_url")
         base_url = portal.absolute_url()
+        actual_url = view.request.ACTUAL_URL
 
-        assert view() == f"{base_url}/@@login?came_from={base_url}"
+        assert view() == f"{base_url}/@@login?came_from={actual_url}"
 
     def test_missing_plugin(self, portal):
         portal.acl_users.manage_delObjects(["ims_sso_plugin"])
