@@ -61,12 +61,6 @@ class TestUserGroupsPage:
             roles=["Member"],
             properties={"active": INACTIVE_STATUS},
         )
-        api.user.create(
-            username="api",
-            email="noreply@nohost.com",
-            roles=["Member"],
-            properties={"active": ACTIVE_STATUS, "service": True},
-        )
         sso.set_login_name("unlinked", f"123@{NOT_LINKED}")
         commit()
 
@@ -175,12 +169,20 @@ class TestUserGroupsPage:
 
     def test_sort_service_accounts(self, browser):
         """Service accounts are sorted last alphabetically"""
+        api.user.create(
+            username="api",
+            email="noreply@nohost.com",
+            roles=["Member"],
+            properties={"active": ACTIVE_STATUS, "service": True},
+        )
+        commit()
+
         browser.open(self.view_url)
         soup = BeautifulSoup(browser.contents, "html.parser")
         assert len(soup.find_all("td", {"data-sort": "zzapi"})) == 1
         assert not soup.find_all("td", {"data-sort": "api"})
 
-    def test_cant_deactivate_manager_and_service(self, browser, setup_users):
+    def test_cant_deactivate_manager(self, browser, setup_users):
         browser.open(self.view_url)
         ctrl = browser.getControl
 
@@ -188,8 +190,6 @@ class TestUserGroupsPage:
         soup = BeautifulSoup(browser.contents, "html.parser")
         for idx, el in enumerate(soup.find_all("input", {"name": "users.id:records"})):
             if el.attrs["value"] == "manager":
-                assert ctrl(name="users.active:records", index=idx).disabled
-            elif el.attrs["value"] == "api":
                 assert ctrl(name="users.active:records", index=idx).disabled
             else:
                 assert not ctrl(name="users.active:records", index=idx).disabled

@@ -14,12 +14,15 @@ class TestLogin:
 
     def test_login_url(self, portal):
         view = api.content.get_view(context=portal, name="get_login_url")
-        assert view() == "http://nohost/plone/@@login?came_from=http://nohost"
+        base_url = portal.absolute_url()
+
+        assert view() == f"{base_url}/@@login?came_from={base_url}"
 
     def test_missing_plugin(self, portal):
         portal.acl_users.manage_delObjects(["ims_sso_plugin"])
         view = api.content.get_view(context=portal, name="get_login_url")
-        assert view() == "http://nohost/plone"
+
+        assert view() == portal.absolute_url()
 
     def test_login_condition_yes_plone(self, portal):
         """Plone authenticated"""
