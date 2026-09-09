@@ -92,7 +92,9 @@ class SsoLinkaccount(BrowserView):
                     notify(UserIdpUpdated(usr))
             return self.success()
         else:
-            return ViewPageTemplateFile("templates/linkaccount_anonymous.pt")(self)
+            return self.request.response.redirect(
+                f"{api.portal.get().absolute_url()}/login?came_from={self.request.URL}"
+            )
 
     def disallowed(self):
         return ViewPageTemplateFile("templates/linkaccount_disallowed.pt")(self)
