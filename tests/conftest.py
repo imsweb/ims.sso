@@ -115,7 +115,7 @@ def mock_mail(portal):
 @dataclass
 class TestIdp(BaseIdp):
     name: str = "Test IDP"
-    idp_logout: str = "https://foo.bar/logout"
+    logout: str = "https://foo.bar/logout"
 
 
 @pytest.fixture

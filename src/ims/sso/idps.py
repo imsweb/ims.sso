@@ -4,7 +4,6 @@ from dataclasses import dataclass
 @dataclass
 class BaseIdp:
     name: str = ""
-    domain: str = ""
     description: str | None = None
     registration: str | None = None
     logout: str | None = None

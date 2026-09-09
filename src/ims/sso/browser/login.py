@@ -1,7 +1,6 @@
 from plone import api
 from plone.protect import CheckAuthenticator, PostOnly
 from plone.protect.interfaces import IDisableCSRFProtection
-from Products.CMFPlone.browser.login.login import LoginForm
 from Products.CMFPlone.PasswordResetTool import InvalidRequestError
 from Products.Five import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -16,12 +15,13 @@ from ..events import UserIdpUpdated
 from ..interfaces import IReactivationUtility, ISingleSignonUtility
 
 
-class RedirectLogin(LoginForm):
-    """This is the Plone default login page. SSO sites do not use it."""
+class Login(BrowserView):
+    @property
+    def sso(self):
+        return getUtility(ISingleSignonUtility)
 
-    def __call__(self):
-        self.request.response.redirect(api.portal.get().absolute_url())
-        return
+    def idps(self):
+        return self.sso.idp_info.values()
 
 
 class SsoLogout(BrowserView):
@@ -133,9 +133,13 @@ class LoginCondition(BrowserView):
         return not sso.is_shibboleth_authenticated(self.request)
 
 
-class LogoutUrl(BrowserView):
-    def __call__(self):
-        return f"{api.portal.get().absolute_url()}/sso-logout"
+class Logout(BrowserView):
+    @property
+    def sso(self):
+        return getUtility(ISingleSignonUtility)
+
+    def __call__(self, *args, **kwargs):
+        self.request.response.redirect(self.sso.get_url_logout(self.request))
 
 
 class RequireLoginView(BrowserView):

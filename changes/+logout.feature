@@ -1,0 +1,1 @@
+Fully embed login and logout logic in the @@login and @@logout views

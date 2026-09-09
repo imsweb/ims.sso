@@ -12,17 +12,6 @@ class TestLogin:
         assert view.__name__ == "change-password"
         view()
 
-    def test_login_url(self, portal):
-        portal_url = api.portal.get().absolute_url()
-        view = api.content.get_view(context=portal, name="get_login_url")
-        assert view() == f"{portal_url}/@@login?came_from={portal_url}"
-
-    def test_missing_plugin(self, portal):
-        portal_url = api.portal.get().absolute_url()
-        portal.acl_users.manage_delObjects(["ims_sso_plugin"])
-        view = api.content.get_view(context=portal, name="get_login_url")
-        assert view() == portal_url
-
     def test_login_condition_yes_plone(self, portal):
         """Plone authenticated"""
         view = api.content.get_view(context=portal, name="login_condition")

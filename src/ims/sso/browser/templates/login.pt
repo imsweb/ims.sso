@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:i18n="http://xml.zope.org/namespaces/i18n"
       xmlns:metal="http://xml.zope.org/namespaces/metal"
@@ -11,13 +12,49 @@
     <metal:noborder fill-slot="top_slot"
                     tal:define="
                       dummy python:request.set('disable_border',1);
+                      dummy python:request.set('disable_plone.leftcolumn', 1);
+                      dummy python:request.set('disable_plone.rightcolumn', 1);
                     "
-    />
-  </head>
+    >
 
-  <body>
-    <metal:main fill-slot="main">
-        Direct site login is not available, please login with your IdP.
-    </metal:main>
-  </body>
-</html>
+    </metal:noborder>
+
+    <body>
+      <metal:main fill-slot="main"
+                  tal:define="
+                    portal context/@@plone_portal_state/portal;
+                    target request/came_from|portal/absolute_url;
+                  "
+      >
+        <div class="container">
+          <div class="row">
+            <tal:idp repeat="idp view/idps">
+              <div class="col"
+                   tal:condition="idp/login|nothing"
+              >
+                <div class="card mb-4"
+                     style="width:20em; height:20em"
+                >
+                  <div class="card-header">
+                   ${idp/name}
+                  </div>
+                  <div class="card-body">
+                    <p>${idp/description|nothing}</p>
+                    <a class="btn btn-primary"
+                       href="${idp/login}?target=${target}"
+                    >Login</a>
+                  </div>
+                  <div class="card-footer"
+                       tal:condition="idp/registration|nothing"
+                  >
+                  Need an account? Register
+                    <a href="${idp/registration}">here</a>.
+                  </div>
+                </div>
+              </div>
+            </tal:idp>
+          </div>
+        </div>
+      </metal:main>
+    </body>
+  </head></html>

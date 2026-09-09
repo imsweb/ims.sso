@@ -78,13 +78,16 @@ class SingleSignonUtility:
 
     def get_login_from_request(self, request: HTTPRequest) -> str:
         """Generate the login name from the request headers"""
-        idp_header = self.get_setting(name="shib_header_idp")
+        domain = self.get_domain_from_request(request)
         user_header = self.get_setting(name="shib_header_user")
-        domain = urlparse(request.environ.get(idp_header)).netloc or request.environ.get(idp_header)
         login = request.environ.get(user_header)
         if is_null(login):
             return ""
         return f"{login}@{domain}"
+
+    def get_domain_from_request(self, request: HTTPRequest) -> str:
+        idp_header = self.get_setting(name="shib_header_idp")
+        return urlparse(request.environ.get(idp_header)).netloc or request.environ.get(idp_header)
 
     def loginname_from_request(self, request: HTTPRequest) -> str:  # pragma: no cover
         warnings.warn("Use get_login_from_request", DeprecationWarning, stacklevel=2)
@@ -120,16 +123,12 @@ class SingleSignonUtility:
 
     def get_url_logout(self, request: HTTPRequest) -> str:
         """Get the logout URL. This will be determined by the REQUEST headers and IdP settings"""
-        login_name = self.get_login_from_request(request)
-        generic_logout = self.get_setting(name="generic_logout")
-        try:
-            idp, login_name = self.get_idp_domain_from_login(login_name)
-        except TypeError:
-            return generic_logout
-
-        logout_url = self.idp_info[idp].get("idp_logout") if idp in self.idp_info else generic_logout
-
-        return logout_url
+        domain = self.get_domain_from_request(request)
+        if domain:
+            logout = self.idp_info.get(domain, {}).get("logout")
+            if logout:
+                return logout
+        return self.get_setting(name="generic_logout")
 
     def get_url_linkaccount(self, link_key: str, userid: str) -> str:
         """Use the generated link key"""

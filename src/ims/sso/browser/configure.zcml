@@ -32,7 +32,7 @@
 
   <!-- login/logout -->
   <browser:page
-      name="sso-logout"
+      name="logout"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
       class=".login.SsoLogout"
       permission="zope.Public"
@@ -63,12 +63,6 @@
       permission="zope.Public"
       />
   <browser:page
-      name="get_login_url"
-      for="zope.interface.Interface"
-      class=".login.LoginUrl"
-      permission="zope.Public"
-      />
-  <browser:page
       name="unauthorized_shib_unauthenticated"
       for="zope.interface.Interface"
       class=".unauthorized.Unauthorized"
@@ -86,12 +80,6 @@
       name="login_condition"
       for="zope.interface.Interface"
       class=".login.LoginCondition"
-      permission="zope.Public"
-      />
-  <browser:page
-      name="logout_url"
-      for="zope.interface.Interface"
-      class=".login.LogoutUrl"
       permission="zope.Public"
       />
   <!-- change password -->
@@ -134,7 +122,7 @@
   <browser:page
       name="login"
       for="plone.base.interfaces.INavigationRoot"
-      class=".login.RedirectLogin"
+      class=".login.Login"
       permission="zope.Public"
       layer="..interfaces.IBrowserLayer"
       />

@@ -16,7 +16,7 @@ class TestLogin:
         install_browser_id_manager(app)
         commit()
 
-        logout_url = f"{api.portal.get().absolute_url()}/sso-logout"
+        logout_url = f"{api.portal.get().absolute_url()}/logout"
 
         browser.open(portal.absolute_url())
         # set fake cookie to ensure its expired
