@@ -4,5 +4,12 @@
     i18n_domain="ims.sso"
     >
 
+  <genericsetup:upgradeStep
+      title="Revert custom logout/login actions"
+      profile="ims.sso:default"
+      source="1"
+      destination="2"
+      handler=".upgrades.login_actions"
+      />
 
 </configure>
