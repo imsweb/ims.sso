@@ -118,12 +118,12 @@
       layer="..interfaces.IBrowserLayer"
       />
 
-  <!-- this just prevents the default login form -->
   <browser:page
       name="login"
-      for="plone.base.interfaces.INavigationRoot"
+      for="*"
       class=".login.Login"
-      permission="zope.Public"
+      template="templates/login.pt"
+      permission="zope2.Public"
       layer="..interfaces.IBrowserLayer"
       />
 
