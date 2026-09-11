@@ -5,11 +5,15 @@
     i18n_domain="ims.sso"
     >
   <utility
-      name="ims.sso.mail_idps"
-      component=".vocabulary.mail_idps"
+      name="ims.sso.mail_templates"
+      component=".vocabulary.mail_templates"
       />
   <utility
       name="ims.sso.active_status"
       component=".vocabulary.active_status"
+      />
+  <utility
+      name="ims.sso.idps"
+      component=".vocabulary.idps"
       />
 </configure>

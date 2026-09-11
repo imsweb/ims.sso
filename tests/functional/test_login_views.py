@@ -34,3 +34,18 @@ class TestLogin:
         """should redirect back to home"""
         browser.open(f"{api.portal.get().absolute_url()}/change-password")
         assert "This site uses single sign-on to authenticate users" in browser.content
+
+    def test_single_idp(self, browser, fake_idp_login):
+        login_url = f"{api.portal.get().absolute_url()}/login"
+        api.portal.set_registry_record(interface=ISSOSettings, name="supported_idps", value=["foologin.bar"])
+        api.portal.set_registry_record(interface=ISSOSettings, name="always_show_login", value=True)
+        commit()
+
+        browser.open(login_url)
+        assert browser.url == login_url
+
+        api.portal.set_registry_record(interface=ISSOSettings, name="always_show_login", value=False)
+        commit()
+
+        browser.open(login_url)
+        assert browser.url != login_url

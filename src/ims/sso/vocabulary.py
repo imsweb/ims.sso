@@ -4,11 +4,11 @@ from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleTerm, SimpleVocabulary
 
 from .configs import ACTIVE_STATUS, DISABLED_STATUS, INACTIVE_STATUS
-from .interfaces import IMailTemplates
+from .interfaces import IMailTemplates, ISsoIdp
 
 
 @provider(IVocabularyFactory)
-def mail_idps(context):
+def mail_templates(context):
     utilities = getUtilitiesFor(IMailTemplates)
     return SimpleVocabulary([SimpleTerm(value=util_id, title=util.title) for util_id, util in utilities])
 
@@ -20,3 +20,9 @@ def active_status(context):
         SimpleTerm(value=INACTIVE_STATUS, title="Inactive"),
         SimpleTerm(value=DISABLED_STATUS, title="Disabled"),
     ])
+
+
+@provider(IVocabularyFactory)
+def idps(context):
+    utilities = getUtilitiesFor(ISsoIdp)
+    return SimpleVocabulary([SimpleTerm(value=util_id, title=util.name) for util_id, util in utilities])

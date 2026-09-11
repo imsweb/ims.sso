@@ -21,7 +21,19 @@ class Login(BrowserView):
         return getUtility(ISingleSignonUtility)
 
     def idps(self):
-        return self.sso.idp_info.values()
+        _idps = [self.sso.idp_info[idp] for idp in self.supported_idps]
+        if len(_idps) == 1 and not self.always_show and _idps[0].get("login"):
+            login = _idps[0]["login"]
+            return self.request.response.redirect(login)
+        return _idps
+
+    @property
+    def supported_idps(self):
+        return self.sso.get_setting("supported_idps") or []
+
+    @property
+    def always_show(self):
+        return self.sso.get_setting("always_show_login")
 
 
 class SsoLogout(BrowserView):

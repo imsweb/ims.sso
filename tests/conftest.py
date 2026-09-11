@@ -118,10 +118,24 @@ class TestIdp(BaseIdp):
     logout: str = "https://foo.bar/logout"
 
 
+@dataclass
+class TestIdpLogin(BaseIdp):
+    name: str = "Test IDP"
+    login: str = "/plone/contact-info"
+    logout: str = "https://foo.bar/logout"
+
+
 @pytest.fixture
 def fake_idp(portal) -> TestIdp:
     utility = TestIdp()
     provideUtility(utility, provides=ISsoIdp, name="foo.bar")
+    return utility
+
+
+@pytest.fixture
+def fake_idp_login(portal) -> TestIdpLogin:
+    utility = TestIdpLogin()
+    provideUtility(utility, provides=ISsoIdp, name="foologin.bar")
     return utility
 
 

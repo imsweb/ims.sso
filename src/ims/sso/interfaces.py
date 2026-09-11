@@ -1,3 +1,4 @@
+from plone.app.z3cform.widgets.select import Select2FieldWidget
 from plone.autoform import directives
 from plone.supermodel import model
 from plone.theme.interfaces import IDefaultPloneLayer
@@ -51,7 +52,7 @@ class ISSOSettings(model.Schema):
     mail_format = schema.Choice(
         title=_("Mail Templates"),
         description=_("Registration and relink templates to use for emails"),
-        vocabulary="ims.sso.mail_idps",
+        vocabulary="ims.sso.mail_templates",
     )
     directives.write_permission(notify_on_activation="ims.sso.NotificationSettings")
     notify_on_activation = schema.Bool(
@@ -101,6 +102,17 @@ class ISSOSettings(model.Schema):
         title="Registration URL",
         description="Link to a registration page for one of the supported IdPs",
         default="https://login.gov/create-an-account/",
+    )
+    directives.widget(
+        "supported_idps",
+        Select2FieldWidget,
+    )
+    supported_idps = schema.List(title="Supported IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"))
+    always_show_login = schema.Bool(
+        title="Always show login page",
+        description="If true, challenges will always direct to the login page even if there's only one IdP",
+        default=False,
+        required=False,
     )
 
 
