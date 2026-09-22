@@ -104,10 +104,17 @@ class ISSOSettings(model.Schema):
         default="https://login.gov/create-an-account/",
     )
     directives.widget(
-        "supported_idps",
+        "primary_idps",
         Select2FieldWidget,
     )
-    supported_idps = schema.List(title="Supported IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"))
+    primary_idps = schema.List(title="Primary IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"), required=True)
+    directives.widget(
+        "secondary_idps",
+        Select2FieldWidget,
+    )
+    secondary_idps = schema.List(
+        title="Secondary IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"), required=False
+    )
     always_show_login = schema.Bool(
         title="Always show login page",
         description="If true, challenges will always direct to the login page even if there's only one IdP",

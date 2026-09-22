@@ -28,8 +28,9 @@
       >
         <div class="container">
           <div class="row">
-            <tal:idp repeat="idp view/idps">
+            <tal:idp repeat="idp view/primary_idps">
               <div class="col"
+                   metal:define-macro="idp_card"
                    tal:condition="idp/login|nothing"
               >
                 <div class="card mb-4"
@@ -54,6 +55,10 @@
               </div>
             </tal:idp>
           </div>
+        </div>
+
+        <div tal:condition="python:len(view.secondary_idps()) == 1">
+            Secondary login: ${view/secondary_idps}
         </div>
       </metal:main>
     </body>

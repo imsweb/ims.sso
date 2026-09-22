@@ -20,20 +20,25 @@ class Login(BrowserView):
     def sso(self):
         return getUtility(ISingleSignonUtility)
 
-    def idps(self):
-        _idps = [self.sso.idp_info[idp] for idp in self.supported_idps]
+    def _get_idps(self, field):
+        _idps = [self.sso.idp_info[idp] for idp in field]
         if len(_idps) == 1 and not self.always_show and _idps[0].get("login"):
             login = _idps[0]["login"]
             return self.request.response.redirect(login)
         return _idps
 
-    @property
-    def supported_idps(self):
-        return self.sso.get_setting("supported_idps") or []
+    def primary_idps(self):
+        return self._get_idps(self.sso.get_setting("primary_idps") or [])
+
+    def secondary_idps(self):
+        return self._get_idps(self.sso.get_setting("secondary_idps") or [])
 
     @property
     def always_show(self):
         return self.sso.get_setting("always_show_login")
+
+    def from_address(self):
+        return api.portal.get_registry_record(name="plone.email_from_address")
 
 
 class SsoLogout(BrowserView):
