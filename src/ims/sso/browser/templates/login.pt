@@ -57,8 +57,25 @@
           </div>
         </div>
 
-        <div tal:condition="python:len(view.secondary_idps()) == 1">
-            Secondary login: ${view/secondary_idps}
+        <div class="container mb-4 p-2 alert alert-info">
+          For assistance, email an
+          <a href="mailto:${view/from_address}">administrator</a>.<br />
+          Please include the name of the site, the login service you are using, and any errors you have received.
+        </div>
+
+        <div tal:condition="view/secondary_idps">
+          <ul class="list-unstyled">
+            <tal:idp repeat="idp view/secondary_idps">
+              <li>
+                <a href="${idp/login}?target=${target}">Sign in with ${idp/name}</a>
+              </li>
+              <li tal:condition="idp/registration|nothing">
+                <a href="${idp/registration}">
+              Register with ${idp/name}
+                </a>
+              </li>
+            </tal:idp>
+          </ul>
         </div>
       </metal:main>
     </body>

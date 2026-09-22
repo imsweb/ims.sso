@@ -32,6 +32,9 @@ class Login(BrowserView):
     def secondary_idps(self):
         return self._get_idps(self.sso.get_setting("secondary_idps") or [])
 
+    def all_idps(self):
+        return (*self.primary_idps(), *self.secondary_idps())
+
     @property
     def always_show(self):
         return self.sso.get_setting("always_show_login")
@@ -41,6 +44,16 @@ class Login(BrowserView):
 
     def site_title(self):
         return api.portal.get_registry_record(name="plone.site_title")
+
+    def has_registration(self):
+        """Optional, to use for wording on custom login pages"""
+        for idp in self.all_idps():
+            if idp.get("registration"):
+                return True
+
+    def single_idp(self):
+        """Optional, to use for wording on custom login pages"""
+        return len(self.all_idps()) == 1
 
 
 class SsoLogout(BrowserView):
