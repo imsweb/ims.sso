@@ -20,15 +20,15 @@ class Login(BrowserView):
     def sso(self):
         return getUtility(ISingleSignonUtility)
 
-    def _get_idps(self, field, always_show=False):
+    def _get_idps(self, field, allow_redirect=True):
         _idps = [self.sso.idp_info[idp] for idp in field]
-        if len(_idps) == 1 and not always_show and _idps[0].get("login"):
+        if len(_idps) == 1 and not allow_redirect and _idps[0].get("login"):
             login = _idps[0]["login"]
             self.request.response.redirect(login)
         return _idps
 
     def primary_idps(self):
-        return self._get_idps(self.sso.get_setting("primary_idps") or [], self.always_show)
+        return self._get_idps(self.sso.get_setting("primary_idps") or [], not self.always_show)
 
     def secondary_idps(self):
         return self._get_idps(self.sso.get_setting("secondary_idps") or [])
