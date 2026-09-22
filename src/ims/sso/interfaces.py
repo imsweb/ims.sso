@@ -1,4 +1,4 @@
-from plone.app.z3cform.widgets.select import Select2FieldWidget
+from plone.app.z3cform.widgets.select import AjaxSelectFieldWidget
 from plone.autoform import directives
 from plone.supermodel import model
 from plone.theme.interfaces import IDefaultPloneLayer
@@ -105,12 +105,12 @@ class ISSOSettings(model.Schema):
     )
     directives.widget(
         "primary_idps",
-        Select2FieldWidget,
+        AjaxSelectFieldWidget,
     )
     primary_idps = schema.List(title="Primary IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"), required=True)
     directives.widget(
         "secondary_idps",
-        Select2FieldWidget,
+        AjaxSelectFieldWidget,
     )
     secondary_idps = schema.List(
         title="Secondary IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"), required=False
