@@ -37,7 +37,7 @@ class TestLogin:
 
     def test_single_idp(self, browser, fake_idp_login):
         login_url = f"{api.portal.get().absolute_url()}/login"
-        api.portal.set_registry_record(interface=ISSOSettings, name="supported_idps", value=["foologin.bar"])
+        api.portal.set_registry_record(interface=ISSOSettings, name="primary_idps", value=["foologin.bar"])
         api.portal.set_registry_record(interface=ISSOSettings, name="always_show_login", value=True)
         commit()
 

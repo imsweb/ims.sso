@@ -20,11 +20,10 @@ class Login(BrowserView):
     def sso(self):
         return getUtility(ISingleSignonUtility)
 
-    def _get_idps(self, field, allow_redirect=True):
+    def _get_idps(self, field, allow_redirect=False):
         _idps = [self.sso.idp_info[idp] for idp in field]
-        if len(_idps) == 1 and not allow_redirect and _idps[0].get("login"):
-            login = _idps[0]["login"]
-            self.request.response.redirect(login)
+        if allow_redirect and len(_idps) == 1 and _idps[0].get("login"):
+            self.request.response.redirect(_idps[0]["login"])
         return _idps
 
     def primary_idps(self):
@@ -39,6 +38,9 @@ class Login(BrowserView):
 
     def from_address(self):
         return api.portal.get_registry_record(name="plone.email_from_address")
+
+    def site_title(self):
+        return api.portal.get_registry_record(name="plone.site_title")
 
 
 class SsoLogout(BrowserView):
