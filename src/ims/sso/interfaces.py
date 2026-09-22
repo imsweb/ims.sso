@@ -1,4 +1,4 @@
-from plone.app.z3cform.widgets.select import AjaxSelectFieldWidget
+# from plone.app.z3cform.widgets.select import AjaxSelectFieldWidget, Select2FieldWidget
 from plone.autoform import directives
 from plone.supermodel import model
 from plone.theme.interfaces import IDefaultPloneLayer
@@ -103,15 +103,15 @@ class ISSOSettings(model.Schema):
         description="Link to a registration page for one of the supported IdPs",
         default="https://login.gov/create-an-account/",
     )
-    directives.widget(
-        "primary_idps",
-        AjaxSelectFieldWidget,
-    )
+    # directives.widget(
+    #     "primary_idps",
+    #     AjaxSelectFieldWidget,
+    # )
     primary_idps = schema.List(title="Primary IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"), required=True)
-    directives.widget(
-        "secondary_idps",
-        AjaxSelectFieldWidget,
-    )
+    # directives.widget(
+    #     "secondary_idps",
+    #     Select2FieldWidget,
+    # )
     secondary_idps = schema.List(
         title="Secondary IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"), required=False
     )
