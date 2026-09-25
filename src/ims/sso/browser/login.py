@@ -45,16 +45,6 @@ class Login(BrowserView):
     def site_title(self):
         return api.portal.get_registry_record(name="plone.site_title")
 
-    def has_registration(self):
-        """Optional, to use for wording on custom login pages"""
-        for idp in self.all_idps():
-            if idp.get("registration"):
-                return True
-
-    def single_idp(self):
-        """Optional, to use for wording on custom login pages"""
-        return len(self.all_idps()) == 1
-
 
 class SsoLogout(BrowserView):
     @property

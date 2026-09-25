@@ -10,6 +10,7 @@ class BaseIdp:
     login: str | None = None
     display_login: bool = True
     update_email: bool = True
+    logo: str | None = None  # xml
 
 
 @dataclass

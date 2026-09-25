@@ -121,7 +121,7 @@ class ISSOSettings(model.Schema):
     always_show_login = schema.Bool(
         title="Always show login page",
         description="If true, challenges will always direct to the login page even if there's only one IdP",
-        default=False,
+        default=True,
         required=False,
     )
 
