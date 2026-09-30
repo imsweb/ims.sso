@@ -9,4 +9,59 @@
         padding-left: 0;
     }
 }
+@media (max-width: 991px) {
+    .template-usergroup-userprefs div#user-search #search-buttons {
+        margin-top: 5px;
+    }
+    .template-usergroup-userprefs
+        div#user-search
+        #search-buttons
+        .searchButton.btn-primary {
+        border-radius: 5px 0 0 5px;
+    }
+    .template-usergroup-userprefs div#user-search #user-status-options {
+        border-right: 1px solid #e5e5e5;
+        border-radius: 0 5px 5px 0;
+    }
+}
+@media (max-width: 799px) {
+    .template-usergroup-userprefs
+        div#user-search
+        #search-buttons
+        .searchButton.btn-primary {
+        border-radius: 0;
+    }
+    .template-usergroup-userprefs div#user-search #user-status-options {
+        border-right: none;
+        margin-top: 5px;
+        border-left: 1px solid #e5e5e5;
+        border-radius: 5px 0 0 5px;
+        padding-left: 5px;
+    }
+    .template-usergroup-userprefs div#user-search #quickSearch {
+        border-right: 1px solid #e5e5e5;
+        border-radius: 0 5px 5px 0;
+    }
+}
+@media (max-width: 493px) {
+    .template-usergroup-userprefs
+        div#user-search
+        #search-buttons
+        .searchButton.btn-primary {
+        border-radius: 5px 0 0 5px;
+    }
+    .template-usergroup-userprefs div#user-search #user-status-options {
+        border-right: 1px solid #e5e5e5;
+        border-radius: 5px;
+    }
+}
+@media (max-width: 393px) {
+    .template-usergroup-userprefs div#user-search #quickSearchLabel {
+        border-radius: 5px;
+    }
+    .template-usergroup-userprefs div#user-search #quickSearch {
+        border-radius: 5px;
+        margin-top: 5px;
+    }
+}
 /*# sourceMappingURL=main.css.map */

@@ -130,7 +130,9 @@
                              type="text"
                              value="${view/searchString}"
                       />
-                      <div class="d-flex pb-1 pt-1 border-top border-bottom border-1">
+                      <div class="d-flex pb-1 pt-1 border-top border-bottom border-1"
+                           id="user-status-options"
+                      >
                         <tal:opts repeat="opt view/active_search_options">
                           <div class="badge bg-light text-dark me-1 border">
                             <div class="form-check pt-1"
@@ -158,7 +160,9 @@
                           </div>
                         </tal:opts>
                       </div>
-                      <div class="container-row d-flex">
+                      <div class="container-row d-flex"
+                           id="search-buttons"
+                      >
                         <button class="searchButton btn btn-primary rounded-0"
                                 name="form.button.Search"
                                 type="submit"
