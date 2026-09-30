@@ -116,7 +116,9 @@
               <div class="container mb-3 px-0">
                 <div class="row gx-5 my-4">
                   <div class="col">
-                    <div class="input-group">
+                    <div class="input-group"
+                         id="user-search"
+                    >
                       <label class="input-group-text"
                              id="quickSearchLabel"
                              for="quickSearch"
@@ -156,31 +158,35 @@
                           </div>
                         </tal:opts>
                       </div>
-                      <button class="searchButton btn btn-primary"
-                              name="form.button.Search"
-                              type="submit"
-                              value="Search"
-                              i18n:attributes="value label_search;"
-                              i18n:translate=""
-                      >
+                      <div class="container-row d-flex">
+                        <button class="searchButton btn btn-primary rounded-0"
+                                name="form.button.Search"
+                                type="submit"
+                                value="Search"
+                                i18n:attributes="value label_search;"
+                                i18n:translate=""
+                        >
                                         Search
-                      </button>
-                      <button class="searchButton btn btn-secondary"
-                              name="form.button.FindAll"
-                              type="submit"
-                              value="Show all"
-                              tal:condition="not:many_users"
-                              i18n:attributes="value label_showall;"
-                              i18n:translate="label_showall"
-                      >
+                        </button>
+                        <button class="searchButton btn btn-secondary rounded-end rounded-start-0"
+                                name="form.button.FindAll"
+                                type="submit"
+                                value="Show all"
+                                tal:condition="not:many_users"
+                                i18n:attributes="value label_showall;"
+                                i18n:translate="label_showall"
+                        >
                                         Show All
-                      </button>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div class="row my-2">
                   <div class="col">
-                    <div class="d-flex" id="users-button-group">
+                    <div class="d-flex"
+                         id="users-button-group"
+                    >
                       <div>
                         <a class="me-3 btn btn-primary"
                            id="add-user"
