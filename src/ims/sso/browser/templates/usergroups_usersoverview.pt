@@ -119,6 +119,7 @@
                     <div class="input-group"
                          id="user-search"
                     >
+
                       <label class="input-group-text"
                              id="quickSearchLabel"
                              for="quickSearch"
@@ -130,6 +131,7 @@
                              type="text"
                              value="${view/searchString}"
                       />
+
                       <div class="d-flex pb-1 pt-1 border-top border-bottom border-1"
                            id="user-status-options"
                       >
