@@ -28,6 +28,12 @@ class TestActivation:
             roles=["Member", "Manager"],
             properties={"active": "active"},
         )
+        api.user.create(
+            username="manager2",
+            email="noreply@nohost.com",
+            roles=["Member", "Manager"],
+            properties={"active": "active"},
+        )
         # os.environ["PLONE_CSRF_DISABLED"] = "true"
 
     def test_deactivate(self, portal):
@@ -40,11 +46,11 @@ class TestActivation:
 
     def test_cant_deactivate_manager(self, portal):
         """User cannot deactivate someone with the Manager role"""
-        with api.env.adopt_user("siteadmin"):
+        with api.env.adopt_user("manager2"):
             view = api.content.get_view("usergroup-userprefs", context=portal)
             view.request.environ["HTTP_X_CSRF_TOKEN"] = createToken()
             view.request.method = "POST"
-            rec = RequestRecord(id="manager", reset_email="noreply@nohost.com", active="inactivate")
+            rec = RequestRecord(id="manager", reset_email="noreply@nohost.com", active="inactive")
             view.manageUser(users=(rec,))
             assert api.user.get("manager").getProperty("active") == "active"
 
