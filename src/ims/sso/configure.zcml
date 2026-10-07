@@ -15,12 +15,12 @@
   <include package=".browser" />
   <include package=".controlpanels" />
   <include package=".mailing" />
-  <include package=".upgrades" />
 
   <include file="profiles.zcml" />
   <include file="events.zcml" />
   <include file="utilities.zcml" />
   <include file="vocabulary.zcml" />
+  <include file="upgrades.zcml" />
 
   <browser:resourceDirectory
       name="ims.sso"
