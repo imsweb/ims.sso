@@ -26,6 +26,18 @@ class TestCron:
             email="noreply@imsweb.com",
             properties={"active": "active", "created_date": datetime.date.today()},
         )
+        self.manager = api.user.create(
+            username="manager",
+            email="noreply@imsweb.com",
+            roles=["Member", "Manager"],
+            properties={"active": "active", "created_date": datetime.date(2000, 1, 1)},
+        )
+        self.service = api.user.create(
+            username="service",
+            email="noreply@imsweb.com",
+            roles=["Member", "Manager"],
+            properties={"active": "active", "created_date": datetime.date(2000, 1, 1), "service": True},
+        )
         sso.set_login_name(user_id=self.user1.getId(), login_name=f"x@{NOT_LINKED}")
         sso.set_login_name(user_id=self.user2.getId(), login_name=f"y@{NOT_LINKED}")
 
@@ -38,6 +50,8 @@ class TestCron:
 
         assert api.user.get("user1") is None
         assert api.user.get("user2") is not None
+        assert api.user.get("manager") is not None
+        assert api.user.get("service") is not None
 
     def test_disable_user_accounts(self, sso, view):
         self.user1.setMemberProperties({"activation_date": datetime.date.today()})
@@ -55,9 +69,27 @@ class TestCron:
         self.user2.setMemberProperties({
             "activation_date": datetime.date.today() - datetime.timedelta(self.disabled_days + 1)
         })
+        self.manager.setMemberProperties({
+            "activation_date": datetime.date.today() - datetime.timedelta(self.inactive_days + 1)
+        })
+        self.service.setMemberProperties({
+            "activation_date": datetime.date.today() - datetime.timedelta(self.inactive_days + 1)
+        })
         view()
         assert api.user.get("user1").getProperty("active") == "inactive"
         assert api.user.get("user2").getProperty("active") == "disabled"
+        assert api.user.get("manager").getProperty("active") == "active"
+        assert api.user.get("service").getProperty("active") == "active"
+
+        self.manager.setMemberProperties({
+            "activation_date": datetime.date.today() - datetime.timedelta(self.disabled_days + 1)
+        })
+        self.service.setMemberProperties({
+            "activation_date": datetime.date.today() - datetime.timedelta(self.disabled_days + 1)
+        })
+        view()
+        assert api.user.get("manager").getProperty("active") == "active"
+        assert api.user.get("service").getProperty("active") == "active"
 
     def test_purge_activation_keys(self, portal, view):
         annotations = IAnnotations(portal)

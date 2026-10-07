@@ -144,7 +144,6 @@ class LogoutUrl(BrowserView):
 
 class RequireLoginView(BrowserView):
     def __call__(self, *args, **kw):
-
         utility = getUtility(ISingleSignonUtility)
 
         if utility.is_plone_authenticated():

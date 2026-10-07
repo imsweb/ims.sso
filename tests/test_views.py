@@ -37,7 +37,10 @@ class TestViews:
 
     def test_login_url(self, portal):
         view = api.content.get_view("get_login_url", context=portal)
-        assert view() == "http://nohost/plone/@@login?came_from=http://nohost"
+        base_url = portal.absolute_url()
+        actual_url = view.request.ACTUAL_URL
+
+        assert view() == f"{base_url}/@@login?came_from={actual_url}"
 
     def test_viewlet_auth_unauth(self, portal):
         zope.logout()
