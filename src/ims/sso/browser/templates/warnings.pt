@@ -16,7 +16,7 @@
         </p>
         <p>
           If you have linked your account with a different service provider you may
-          <a href="/Shibboleth.sso/PloneLogin?target=${portal/absolute_url}">login with that service
+          <a href="${portal/absolute_url}/login">login with that service
             provider</a>
            instead.
         </p>
