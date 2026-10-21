@@ -36,7 +36,7 @@ jobs:
         uv sync --all-extras
     - name: Run unittests
       run: |
-        uv run pytest --cov=. --cov-report=html
+        uv run pytest --cov=src --cov-report=html
 
   docs:
     runs-on: ubuntu-latest
