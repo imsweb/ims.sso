@@ -1,4 +1,10 @@
 import pytest
+from plone import api
+from plone.protect.authenticator import createToken
+from plone.testing import zope
+from zExceptions import Forbidden
+from zope.annotation.interfaces import IAnnotations
+
 from ims.sso.browser.viewlets import SsoWarningsViewlet
 from ims.sso.configs import (
     ACTIVE_STATUS,
@@ -7,11 +13,6 @@ from ims.sso.configs import (
     INACTIVE_STATUS,
 )
 from ims.sso.interfaces import ISSOSettings
-from plone import api
-from plone.protect.authenticator import createToken
-from plone.testing import zope
-from zExceptions import Forbidden
-from zope.annotation.interfaces import IAnnotations
 
 
 class TestViews:

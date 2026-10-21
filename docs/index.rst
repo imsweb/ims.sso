@@ -27,6 +27,7 @@ Contents:
 
    linking
    fields
+   idps
    activation
    email
    browser

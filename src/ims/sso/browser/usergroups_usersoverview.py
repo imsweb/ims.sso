@@ -103,9 +103,9 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
                 continue
             idp, login = self.sso.get_idp_domain_from_login(user_account.getUserName())
             usr["idp"] = self.sso.get_idp_from_domain(idp)
-            usr["login"] = login
-            if idp in self.sso.get_setting("undisplayed_loginname_idps"):
-                usr["login"] = None
+            usr["login"] = None
+            if idp in self.sso.idp_info and self.sso.idp_info[idp]["display_login"]:
+                usr["login"] = login
             usr["first_name"] = user_account.getProperty("first_name", "") or ""
             usr["last_name"] = user_account.getProperty("last_name", "") or ""
             usr["service"] = user_account.getProperty("service", False)

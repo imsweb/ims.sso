@@ -39,7 +39,7 @@ Register with ZCML:
     <utility
       factory=".mailers.MyMailTemplates"
       provides="ims.sso.interfaces.IMailTemplates"
-      name="ims.sso.idp.mysso"
+      name="ims.sso.mailers.mysso"
       />
 
 

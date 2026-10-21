@@ -1,12 +1,13 @@
-from ims.sso.interfaces import ISSOSettings
 from plone import api
 from transaction import commit
+
+from ims.sso.interfaces import ISSOSettings
 
 
 class TestAddUserForm:
     def test_form(self, browser, mock_mail):
         """`mock_mail` is needed to configure the mail host"""
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.mailers.nosso")
         api.group.create(groupname="Editors", title="Editors")
         commit()
 
@@ -20,7 +21,7 @@ class TestAddUserForm:
         assert api.user.get(userid="van-rossum-guido")
 
     def test_form_request_vars(self, browser, mock_mail):
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.mailers.nosso")
         commit()
 
         browser.open(
@@ -33,7 +34,7 @@ class TestAddUserForm:
 
     def test_form_dup_confirmation(self, browser, mock_mail):
         """`mock_mail` is needed to configure the mail host"""
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.mailers.nosso")
         api.user.create(username="foo", email="guido@python.org")
         commit()
 
@@ -56,7 +57,7 @@ class TestAddUserForm:
 
     def test_cancel_form(self, browser, mock_mail):
         """`mock_mail` is needed to configure the mail host"""
-        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.idp.nosso")
+        api.portal.set_registry_record(name="mail_format", interface=ISSOSettings, value="ims.sso.mailers.nosso")
         commit()
 
         browser.open(f"{api.portal.get().absolute_url()}/new-user")

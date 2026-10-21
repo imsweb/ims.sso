@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import logging
 import warnings
+from dataclasses import asdict
 from urllib.parse import urlparse
 
 import DateTime
@@ -11,7 +12,7 @@ from plone.uuid.interfaces import IUUIDGenerator
 from Products.Five import BrowserView
 from Products.PlonePAS.tools.memberdata import MemberData
 from zope.annotation.interfaces import IAnnotations
-from zope.component import getUtility
+from zope.component import getUtilitiesFor, getUtility
 from zope.globalrequest import getRequest
 from ZPublisher.HTTPRequest import HTTPRequest
 
@@ -24,7 +25,7 @@ from .configs import (
     NOT_LINKED,
 )
 from .errors import NoSSOMailTemplatesException
-from .interfaces import IMailTemplates, ISSOSettings
+from .interfaces import IMailTemplates, ISsoIdp, ISSOSettings
 
 send_portal_link_msg = """Your account has been successfully updated on {}.
 
@@ -77,13 +78,16 @@ class SingleSignonUtility:
 
     def get_login_from_request(self, request: HTTPRequest) -> str:
         """Generate the login name from the request headers"""
-        idp_header = self.get_setting(name="shib_header_idp")
+        domain = self.get_domain_from_request(request)
         user_header = self.get_setting(name="shib_header_user")
-        domain = urlparse(request.environ.get(idp_header)).netloc or request.environ.get(idp_header)
         login = request.environ.get(user_header)
         if is_null(login):
             return ""
         return f"{login}@{domain}"
+
+    def get_domain_from_request(self, request: HTTPRequest) -> str:
+        idp_header = self.get_setting(name="shib_header_idp")
+        return urlparse(request.environ.get(idp_header)).netloc or request.environ.get(idp_header)
 
     def loginname_from_request(self, request: HTTPRequest) -> str:  # pragma: no cover
         warnings.warn("Use get_login_from_request", DeprecationWarning, stacklevel=2)
@@ -92,13 +96,10 @@ class SingleSignonUtility:
     @property
     def idp_info(self) -> dict[str : dict[str:str]]:
         """Get supported IdPs"""
-        idps = self.get_setting(name="idps") or []
-        _idps = {}
-        for idp in idps:
-            idp = idp.copy()
-            idp_id = idp.pop("domain")
-            _idps[idp_id] = idp
-        return _idps
+        idps = {}
+        for idp_id, idp in getUtilitiesFor(ISsoIdp):
+            idps[idp_id] = asdict(idp)
+        return idps
 
     def get_idp_domain_from_login(self, login_name: str) -> tuple[str, str]:
         """If given wohnlice@adfs.omni.imsweb.com, return ["wohnlice", "adfs.omni.imsweb.com"]"""
@@ -122,16 +123,12 @@ class SingleSignonUtility:
 
     def get_url_logout(self, request: HTTPRequest) -> str:
         """Get the logout URL. This will be determined by the REQUEST headers and IdP settings"""
-        login_name = self.get_login_from_request(request)
-        generic_logout = self.get_setting(name="generic_logout")
-        try:
-            idp, login_name = self.get_idp_domain_from_login(login_name)
-        except TypeError:
-            return generic_logout
-
-        logout_url = self.idp_info[idp]["idp_logout"] if idp in self.idp_info else generic_logout
-
-        return logout_url
+        domain = self.get_domain_from_request(request)
+        if domain:
+            logout = self.idp_info.get(domain, {}).get("logout")
+            if logout:
+                return logout
+        return self.get_setting(name="generic_logout")
 
     def get_url_linkaccount(self, link_key: str, userid: str) -> str:
         """Use the generated link key"""

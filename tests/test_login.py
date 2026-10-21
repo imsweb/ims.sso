@@ -1,9 +1,9 @@
-from ims.sso.interfaces import ISSOSettings
 from plone import api
 from plone.testing import zope
 
+from ims.sso.interfaces import ISSOSettings
+
 GENERIC_LOGOUT_URL = "/Shibboleth.sso/Logout"
-TEST_IDPS = [{"domain": "tester", "name": "tester", "idp_logout": "https://foo.bar/logout"}]
 
 
 class TestLogin:
@@ -67,15 +67,10 @@ class TestLogin:
         assert "Access Denied" not in view()
         assert "Unauthorized" in view()
 
-    def test_logout_url(self, http_request, sso, shib_header_user, shib_header_idp):
-        api.portal.set_registry_record(
-            name="idps",
-            interface=ISSOSettings,
-            value=TEST_IDPS,
-        )
+    def test_logout_url(self, http_request, sso, shib_header_user, shib_header_idp, fake_idp):
         api.portal.set_registry_record(name="generic_logout", interface=ISSOSettings, value=GENERIC_LOGOUT_URL)
         http_request.environ = {
-            shib_header_idp: "tester",
+            shib_header_idp: "foo.bar",
             shib_header_user: "wohnlice",
         }
         logout = sso.get_url_logout(request=http_request)

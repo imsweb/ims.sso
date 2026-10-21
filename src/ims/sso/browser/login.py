@@ -1,7 +1,6 @@
 from plone import api
 from plone.protect import CheckAuthenticator, PostOnly
 from plone.protect.interfaces import IDisableCSRFProtection
-from Products.CMFPlone.browser.login.login import LoginForm
 from Products.CMFPlone.PasswordResetTool import InvalidRequestError
 from Products.Five import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -16,12 +15,35 @@ from ..events import UserIdpUpdated
 from ..interfaces import IReactivationUtility, ISingleSignonUtility
 
 
-class RedirectLogin(LoginForm):
-    """This is the Plone default login page. SSO sites do not use it."""
+class Login(BrowserView):
+    @property
+    def sso(self):
+        return getUtility(ISingleSignonUtility)
 
-    def __call__(self):
-        self.request.response.redirect(api.portal.get().absolute_url())
-        return
+    def _get_idps(self, field, allow_redirect=False):
+        _idps = [self.sso.idp_info[idp] for idp in field]
+        if allow_redirect and len(_idps) == 1 and _idps[0].get("login"):
+            self.request.response.redirect(_idps[0]["login"])
+        return _idps
+
+    def primary_idps(self):
+        return self._get_idps(self.sso.get_setting("primary_idps") or [], not self.always_show)
+
+    def secondary_idps(self):
+        return self._get_idps(self.sso.get_setting("secondary_idps") or [])
+
+    def all_idps(self):
+        return (*self.primary_idps(), *self.secondary_idps())
+
+    @property
+    def always_show(self):
+        return self.sso.get_setting("always_show_login")
+
+    def from_address(self):
+        return api.portal.get_registry_record(name="plone.email_from_address")
+
+    def site_title(self):
+        return api.portal.get_registry_record(name="plone.site_title")
 
 
 class SsoLogout(BrowserView):
@@ -92,7 +114,9 @@ class SsoLinkaccount(BrowserView):
                     notify(UserIdpUpdated(usr))
             return self.success()
         else:
-            return ViewPageTemplateFile("templates/linkaccount_anonymous.pt")(self)
+            return self.request.response.redirect(
+                f"{api.portal.get().absolute_url()}/login?came_from={self.request.URL}"
+            )
 
     def disallowed(self):
         return ViewPageTemplateFile("templates/linkaccount_disallowed.pt")(self)
@@ -121,11 +145,7 @@ class LoginUrl(BrowserView):
         acl = api.portal.get_tool("acl_users")
         if "ims_sso_plugin" not in acl.objectIds():
             return api.portal.get().absolute_url()
-        login_url = acl.ims_sso_plugin.login_url(self.request.ACTUAL_URL)
-        # stops loop if they try to login to an unauth page
-        # if "target=" in login_url and self.request.get("came_from"):
-        #     return login_url.split("target=")[0] + "target=" + self.request["came_from"]
-        # else:
+        login_url = acl.ims_sso_plugin.login_url(api.portal.get().absolute_url())
         return login_url
 
 
@@ -137,9 +157,13 @@ class LoginCondition(BrowserView):
         return not sso.is_shibboleth_authenticated(self.request)
 
 
-class LogoutUrl(BrowserView):
-    def __call__(self):
-        return f"{api.portal.get().absolute_url()}/sso-logout"
+class Logout(BrowserView):
+    @property
+    def sso(self):
+        return getUtility(ISingleSignonUtility)
+
+    def __call__(self, *args, **kwargs):
+        self.request.response.redirect(self.sso.get_url_logout(self.request))
 
 
 class RequireLoginView(BrowserView):

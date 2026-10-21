@@ -13,7 +13,6 @@ from zope.lifecycleevent import ObjectAddedEvent
 from zope.schema import Bool, Choice, Date, TextLine
 
 from .configs import _
-from .interfaces import ISSOSettings
 
 
 def configure_plugin():
@@ -45,13 +44,6 @@ def install(context):
     """Install ims.sso"""
     configure_plugin()
     setup_user_schema()
-
-    if not api.portal.get_registry_record(interface=ISSOSettings, name="idps"):
-        api.portal.set_registry_record(
-            interface=ISSOSettings,
-            name="idps",
-            value=[{"domain": "not.linked", "name": "Not Linked"}],
-        )
 
 
 def add_user_field(field: dict):

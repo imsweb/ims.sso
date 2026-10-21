@@ -1,4 +1,5 @@
 import pytest
+
 from ims.sso.interfaces import IBrowserLayer
 
 PACKAGE_NAME = "ims.sso"

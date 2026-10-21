@@ -18,4 +18,10 @@
       factory=".utility.ReactivationUtility"
       provides=".interfaces.IReactivationUtility"
       />
+
+  <utility
+      factory=".idps.Unlinked"
+      provides=".interfaces.ISsoIdp"
+      name="not.linked"
+      />
 </configure>

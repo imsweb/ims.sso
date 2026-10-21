@@ -7,7 +7,7 @@
   <browser:page
       name="sso-settings"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
-      class=".sso.SsoSettingsControlPanelView"
+      class=".sso.ControlPanel"
       permission="ims.sso.BasicSettings"
       />
 </configure>
