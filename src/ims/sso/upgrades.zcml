@@ -5,11 +5,11 @@
     >
 
   <genericsetup:upgradeStep
-      title="Revert custom logout/login actions"
+      title="Revert custom logout/login actions, update registry"
       profile="ims.sso:default"
       source="1"
       destination="2"
-      handler=".upgrades.login_actions"
+      handler=".upgrades.to_2"
       />
 
 </configure>
