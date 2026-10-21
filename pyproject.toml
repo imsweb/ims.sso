@@ -25,7 +25,8 @@ dependencies = [
 homepage = "https://github.com/imsweb/ims.sso"
 
 [project.optional-dependencies]
-test = ["plone.app.testing", "plone.mocktestcase", "formencode", "plone.app.robotframework", "pytest_plone"]
+test = ["plone.app.testing", "plone.app.robotframework", "pytest_plone", "pytest-cov"]
+docs = ["sphinx", "sphinx_rtd_theme", "sphinx-tabs", "sphinx-copybutton"]
 
 [project.entry-points."plone.autoinclude.plugin"]
 target = "plone"
