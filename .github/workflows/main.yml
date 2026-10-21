@@ -49,7 +49,7 @@ jobs:
       run: uv python install
     - name: Install dependencies
       run: |
-        uv sync --all-extras --dev
+        uv sync --all-groups
     - name: Sphinx build
       run: |
         sphinx-build docs _build
