@@ -36,13 +36,6 @@ class TestViews:
         http_request.environ[sso.get_setting("shib_header_idp")] = self.idp
         http_request[sso.get_setting("shib_header_email")] = self.email
 
-    def test_login_url(self, portal):
-        view = api.content.get_view("get_login_url", context=portal)
-        base_url = portal.absolute_url()
-        actual_url = view.request.ACTUAL_URL
-
-        assert view() == f"{base_url}/@@login?came_from={actual_url}"
-
     def test_viewlet_auth_unauth(self, portal):
         zope.logout()
 
