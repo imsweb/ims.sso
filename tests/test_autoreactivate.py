@@ -2,14 +2,15 @@ import datetime
 from email import message_from_bytes
 
 import pytest
-from ims.sso.configs import ACTIVE_STATUS, AUTHENTICATED_KEY, INACTIVE_STATUS
-from ims.sso.interfaces import IReactivationUtility
 from plone import api
 from plone.protect.authenticator import createToken
 from plone.testing import zope
 from Products.statusmessages.interfaces import IStatusMessage
 from zope.annotation.interfaces import IAnnotations
 from zope.component import getUtility
+
+from ims.sso.configs import ACTIVE_STATUS, AUTHENTICATED_KEY, INACTIVE_STATUS
+from ims.sso.interfaces import IReactivationUtility
 
 
 class TestAutoReactivation:

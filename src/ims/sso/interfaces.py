@@ -1,13 +1,14 @@
-import json
-
+from plone.app.content.browser.vocabulary import PERMISSIONS
+from plone.app.z3cform.widgets.select import AjaxSelectFieldWidget
 from plone.autoform import directives
-from plone.schema import JSONField
 from plone.supermodel import model
 from plone.theme.interfaces import IDefaultPloneLayer
 from zope import schema
-from zope.interface.interface import Interface
+from zope.interface.interface import Attribute, Interface
 
 from .configs import _
+
+PERMISSIONS["ims.sso.idps"] = "View"
 
 
 class IBrowserLayer(IDefaultPloneLayer):
@@ -29,7 +30,7 @@ class ISSOSettings(model.Schema):
     )
     directives.write_permission(shib_header_last_name="ims.sso.AdvancedSettings")
     shib_header_last_name = schema.TextLine(
-        title="Shibboleth Header - LAST Name",
+        title="Shibboleth Header - Last Name",
         default="HTTP_SHIBLASTNAME",
         required=False,
     )
@@ -54,7 +55,7 @@ class ISSOSettings(model.Schema):
     mail_format = schema.Choice(
         title=_("Mail Templates"),
         description=_("Registration and relink templates to use for emails"),
-        vocabulary="ims.sso.mail_idps",
+        vocabulary="ims.sso.mail_templates",
     )
     directives.write_permission(notify_on_activation="ims.sso.NotificationSettings")
     notify_on_activation = schema.Bool(
@@ -93,27 +94,6 @@ class ISSOSettings(model.Schema):
         "Generally these are views that you expect to be ok to use anonymously",
         default=["linkaccount", "reactivate_user", "reactivation", "contact-info"],
     )
-    directives.write_permission(idps="ims.sso.AdvancedSettings")
-    idps = JSONField(
-        title="IdPs",
-        description='See schema for details. ex: [{"domain": "", "name": "", "idp_logout":""}]',
-        schema=json.dumps({
-            "type": "array",
-            "items": {
-                "title": "IdPs",
-                "type": "object",
-                "properties": {
-                    "domain": {"description": "Domain", "type": "string"},
-                    "name": {"description": "Name", "type": "string"},
-                    "description": {"description": "Description", "type": "string"},
-                    "registration": {"description": "Registration URL", "type": "string"},
-                    "idp_login": {"description": "IdP Login URL", "type": "string"},
-                    "idp_logout": {"description": "IdP Logout URL", "type": "string"},
-                },
-                "required": ["domain", "name"],
-            },
-        }),
-    )
     directives.write_permission(generic_logout="ims.sso.BasicSettings")
     generic_logout = schema.TextLine(
         title="Generic Logout URL",
@@ -126,18 +106,23 @@ class ISSOSettings(model.Schema):
         description="Link to a registration page for one of the supported IdPs",
         default="https://login.gov/create-an-account/",
     )
-    directives.write_permission(idps="ims.sso.AdvancedSettings")
-    non_updating_idps = schema.List(
-        title="Non-updating IdPs",
-        description="Blacklist of IdP domain names where user email and name will not be updated.",
-        value_type=schema.TextLine(),
-        default=[],
+    directives.widget(
+        "primary_idps",
+        AjaxSelectFieldWidget,
     )
-    undisplayed_loginname_idps = schema.List(
-        title="Don't display Login Name for these Idps",
-        description="Login names from these domains will not be displayed on the users overview page.",
-        value_type=schema.TextLine(),
-        default=[],
+    primary_idps = schema.List(title="Primary IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"), required=True)
+    directives.widget(
+        "secondary_idps",
+        AjaxSelectFieldWidget,
+    )
+    secondary_idps = schema.List(
+        title="Secondary IdPs", value_type=schema.Choice(vocabulary="ims.sso.idps"), required=False
+    )
+    always_show_login = schema.Bool(
+        title="Always show login page",
+        description="If true, challenges will always direct to the login page even if there's only one IdP",
+        default=True,
+        required=False,
     )
 
 
@@ -169,3 +154,12 @@ class IMailTemplates(Interface):
 
 class IUserExpiryUtility(Interface):
     """global utility"""
+
+
+class ISsoIdp(Interface):
+    domain = Attribute("Idp domain name")
+    name = Attribute("User friendly name")
+    description = Attribute("Description of IdP (optional)")
+    registration = Attribute("Registration URL (optional)")
+    login = Attribute("Login link")
+    logout = Attribute("Logout link")

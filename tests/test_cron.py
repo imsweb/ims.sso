@@ -1,10 +1,11 @@
 import datetime
 
 import pytest
-from ims.sso.configs import NOT_LINKED
 from persistent.mapping import PersistentMapping
 from plone import api
 from zope.annotation.interfaces import IAnnotations
+
+from ims.sso.configs import NOT_LINKED
 
 
 class TestCron:

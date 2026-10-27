@@ -41,7 +41,7 @@
   <utility
       factory=".mailers.NoSSOMailTemplates"
       provides="ims.sso.interfaces.IMailTemplates"
-      name="ims.sso.idp.nosso"
+      name="ims.sso.mailers.nosso"
       />
 
 

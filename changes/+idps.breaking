@@ -1,0 +1,1 @@
+Change IdP registration from JSON to ZCML. This allows dynamic values and reduces the complexity of control panel settings.

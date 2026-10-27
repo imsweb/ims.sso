@@ -1,6 +1,5 @@
 import pytest
 import transaction
-from ims.sso.interfaces import ISSOSettings
 from plone import api
 from plone.testing import zope
 
@@ -8,8 +7,8 @@ test_login = "guido"
 test_user_id = "someCrazyUserIdForGuido"
 
 CREDENTIALS = {
-    "username": test_login + "@adfs.imsweb.com",
-    "idp": "https://adfs.imsweb.com",
+    "username": test_login + "@foo.bar",
+    "idp": "https://foo.bar",
     "first_name": "Eric",
     "last_name": "Wohnlich",
     "email": "noreply@imsweb.com",
@@ -20,7 +19,7 @@ class TestPlugins:
     @pytest.fixture
     def setup_user(self, sso):
         usr = api.user.create(username=test_login, email="null@imsweb.com")
-        sso.set_login_name(test_login, f"{test_login}@imsweb.com")
+        sso.set_login_name(test_login, f"{test_login}@foo.bar")
         return usr
 
     @pytest.fixture
@@ -33,7 +32,7 @@ class TestPlugins:
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
         assert plugin.authenticateCredentials(CREDENTIALS) == (
             test_user_id,
-            test_login + "@adfs.imsweb.com",
+            test_login + "@foo.bar",
         )
 
     def test_challenge_plugin(self, plugin, portal, http_request):
@@ -68,7 +67,7 @@ class TestPlugins:
             "idp": "https://imsweb.com/ims-external",
         }
 
-    def test_update_user(self, plugin):
+    def test_update_user(self, plugin, fake_idp):
         usr = api.user.get(username=test_user_id)
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
         # control
@@ -83,7 +82,7 @@ class TestPlugins:
         assert usr.getProperty("last_name") == "Wohnlich"
         assert usr.getProperty("email") == "noreply@imsweb.com"
 
-    def test_update_user_lname_only(self, plugin):
+    def test_update_user_lname_only(self, plugin, fake_idp):
         """Test the condition where we only have last_name. This only matters for fullname"""
         usr = api.user.get(username=test_user_id)
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
@@ -100,16 +99,15 @@ class TestPlugins:
         assert usr.getProperty("fullname") == "Wohnlich"
         assert usr.getProperty("email") == "noreply@imsweb.com"
 
-    def test_update_user_non_update(
-        self,
-        plugin,
-    ):
+    def test_idp_registration(self, fake_idp, fake_idp_no_update):
+        assert fake_idp.update_email
+        assert not fake_idp_no_update.update_email
+
+    def test_update_user_non_update(self, plugin, fake_idp_no_update):
         usr = api.user.get(username=test_user_id)
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
         # control
         assert usr.getProperty("email") != "noreply@imsweb.com"
-
-        api.portal.set_registry_record(interface=ISSOSettings, name="non_updating_idps", value=["adfs.imsweb.com"])
 
         plugin.authenticateCredentials(CREDENTIALS)
         transaction.commit()
