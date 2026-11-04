@@ -82,6 +82,12 @@
       class=".login.LoginCondition"
       permission="zope.Public"
       />
+  <browser:page
+      name="is_login_page"
+      for="zope.interface.Interface"
+      class=".login.IsLoginPage"
+      permission="zope.Public"
+      />
   <!-- change password -->
   <browser:page
       name="change-password"

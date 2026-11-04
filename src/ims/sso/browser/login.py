@@ -155,10 +155,15 @@ class LoginCondition(BrowserView):
     def __call__(self):
         if not api.user.is_anonymous():  # sanity fallback
             return False
-        if self.request.PATH_INFO.rstrip("/").endswith(("/@@login", "/login")):
-            return False
         sso = getUtility(ISingleSignonUtility)
         return not sso.is_shibboleth_authenticated(self.request)
+
+
+class IsLoginPage(BrowserView):
+    """True while the current request is for the login page itself."""
+
+    def __call__(self):
+        return self.request.PATH_INFO.rstrip("/").endswith(("/@@login", "/login"))
 
 
 class Logout(BrowserView):
