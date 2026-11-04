@@ -155,6 +155,8 @@ class LoginCondition(BrowserView):
     def __call__(self):
         if not api.user.is_anonymous():  # sanity fallback
             return False
+        if self.request.PATH_INFO.rstrip("/").endswith(("/@@login", "/login")):
+            return False
         sso = getUtility(ISingleSignonUtility)
         return not sso.is_shibboleth_authenticated(self.request)
 
