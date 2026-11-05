@@ -13,7 +13,7 @@
       />
 
   <genericsetup:upgradeStep
-      title="Remove login link on login pages"
+      title="Remove login link on login page"
       profile="ims.sso:default"
       source="2"
       destination="3"
