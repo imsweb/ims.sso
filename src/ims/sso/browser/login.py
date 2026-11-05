@@ -156,14 +156,17 @@ class LoginCondition(BrowserView):
         if not api.user.is_anonymous():  # sanity fallback
             return False
         sso = getUtility(ISingleSignonUtility)
-        return not sso.is_shibboleth_authenticated(self.request)
+        #  no Shibb session and on login page
+        return not sso.is_shibboleth_authenticated(self.request) and self.request.PATH_INFO.rstrip("/").endswith((
+            "/@@login",
+            "/login",
+        ))
 
 
-class IsLoginPage(BrowserView):
-    """True while the current request is for the login page itself."""
-
+class LogoutCondition(BrowserView):
     def __call__(self):
-        return self.request.PATH_INFO.rstrip("/").endswith(("/@@login", "/login"))
+        sso = getUtility(ISingleSignonUtility)
+        return sso.is_shibboleth_authenticated(self.request)
 
 
 class Logout(BrowserView):
