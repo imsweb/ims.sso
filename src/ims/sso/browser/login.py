@@ -157,7 +157,7 @@ class LoginCondition(BrowserView):
             return False
         sso = getUtility(ISingleSignonUtility)
         #  no Shibb session and on login page
-        return not sso.is_shibboleth_authenticated(self.request) and self.request.PATH_INFO.rstrip("/").endswith((
+        return not sso.is_shibboleth_authenticated(self.request) and not self.request.PATH_INFO.rstrip("/").endswith((
             "/@@login",
             "/login",
         ))
