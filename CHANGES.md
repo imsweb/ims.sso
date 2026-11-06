@@ -1,3 +1,9 @@
+# ims.sso 1.1.4 (2026-11-04)
+
+## Bug fix
+
+- run upgrade step to update `login` and `logout` in portal_actions
+
 # ims.sso 1.1.1 (2026-11-04)
 
 ## Bug fix

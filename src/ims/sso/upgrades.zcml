@@ -12,4 +12,12 @@
       handler=".upgrades.to_2"
       />
 
+  <genericsetup:upgradeStep
+      title="Remove login link on login page"
+      profile="ims.sso:default"
+      source="2"
+      destination="3"
+      handler=".upgrades.to_3"
+      />
+
 </configure>
