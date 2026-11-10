@@ -1,6 +1,7 @@
 from plone import api
 from plone.protect import CheckAuthenticator, PostOnly
 from plone.protect.interfaces import IDisableCSRFProtection
+from Products.CMFPlone.browser.login.login import LoginForm
 from Products.CMFPlone.PasswordResetTool import InvalidRequestError
 from Products.Five import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -46,6 +47,10 @@ class Login(BrowserView):
 
     def site_title(self):
         return api.portal.get_registry_record(name="plone.site_title")
+
+    def _post_login(self):
+        view = LoginForm(self.context, self.request)
+        return view._post_login()
 
 
 class SsoLogout(BrowserView):

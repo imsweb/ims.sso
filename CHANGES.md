@@ -1,3 +1,9 @@
+# ims.sso 1.1.5 (2026-11-10)
+
+## Bug fix
+
+- Add `_post_login` hook for REST API
+
 # ims.sso 1.1.4 (2026-11-04)
 
 ## Bug fix
