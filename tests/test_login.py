@@ -1,4 +1,5 @@
 from plone import api
+from plone.restapi.tests.test_auth import TestLogin
 from plone.testing import zope
 
 from ims.sso.interfaces import ISSOSettings
@@ -6,7 +7,7 @@ from ims.sso.interfaces import ISSOSettings
 GENERIC_LOGOUT_URL = "/Shibboleth.sso/Logout"
 
 
-class TestLogin:
+class TestSsoLogin:
     def test_change_password(self, portal):
         view = api.content.get_view(context=portal, name="change-password")
         assert view.__name__ == "change-password"
@@ -66,3 +67,7 @@ class TestLogin:
         http_request.environ[shib_header_idp] = "https://othersite.com"
         logout = sso.get_url_logout(request=http_request)
         assert logout == GENERIC_LOGOUT_URL
+
+
+class TestApiLogin(TestLogin):
+    """Rerun these tests"""
