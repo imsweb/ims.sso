@@ -48,8 +48,8 @@ class SsoWarningsViewlet(ViewletBase):
         sso = getUtility(ISingleSignonUtility)
         real_login_name = sso.get_login_from_request(self.request)
         if real_login_name:
-            idp, idp_login_name = sso.get_idp_domain_from_login(real_login_name)
-            idp = sso.get_idp_from_domain(idp)
+            idp, idp_login_name = sso.get_idp_url_from_login(real_login_name)
+            idp = sso.get_idp_from_url(idp)
             return f"{idp_login_name} via {idp}"
         else:
             return api.user.get_current().getId()

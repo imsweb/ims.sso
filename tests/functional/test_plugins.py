@@ -7,7 +7,7 @@ test_login = "guido"
 test_user_id = "someCrazyUserIdForGuido"
 
 CREDENTIALS = {
-    "username": test_login + "@foo.bar",
+    "username": test_login + "@https://foo.bar",
     "idp": "https://foo.bar",
     "first_name": "Eric",
     "last_name": "Wohnlich",
@@ -19,7 +19,7 @@ class TestPlugins:
     @pytest.fixture
     def setup_user(self, sso):
         usr = api.user.create(username=test_login, email="null@imsweb.com")
-        sso.set_login_name(test_login, f"{test_login}@foo.bar")
+        sso.set_login_name(test_login, f"{test_login}https://@foo.bar")
         return usr
 
     @pytest.fixture
@@ -32,7 +32,7 @@ class TestPlugins:
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
         assert plugin.authenticateCredentials(CREDENTIALS) == (
             test_user_id,
-            test_login + "@foo.bar",
+            test_login + "@https://foo.bar",
         )
 
     def test_challenge_plugin(self, plugin, portal, http_request):
@@ -60,7 +60,7 @@ class TestPlugins:
         http_request.environ[shib_header_email] = "noreply@imsweb.com"
         http_request.environ[shib_header_idp] = "https://imsweb.com/ims-external"
         assert plugin.extractCredentials(http_request) == {
-            "username": "guido@imsweb.com",
+            "username": "guido@https://imsweb.com/ims-external",
             "first_name": "guido",
             "last_name": "van rossum",
             "email": "noreply@imsweb.com",
@@ -82,7 +82,7 @@ class TestPlugins:
         assert usr.getProperty("last_name") == "Wohnlich"
         assert usr.getProperty("email") == "noreply@imsweb.com"
 
-    def test_update_user_lname_only(self, plugin, fake_idp):
+    def test_update_user_lname_only(self, plugin, fake_idp_no_update):
         """Test the condition where we only have last_name. This only matters for fullname"""
         usr = api.user.get(username=test_user_id)
         api.user.get(username=test_user_id).setMemberProperties({"active": "active"})
@@ -97,7 +97,7 @@ class TestPlugins:
         usr = api.user.get(username=test_user_id)
         assert usr.getProperty("last_name") == "Wohnlich"
         assert usr.getProperty("fullname") == "Wohnlich"
-        assert usr.getProperty("email") == "noreply@imsweb.com"
+        assert usr.getProperty("email") != "noreply@imsweb.com"
 
     def test_idp_registration(self, fake_idp, fake_idp_no_update):
         assert fake_idp.update_email

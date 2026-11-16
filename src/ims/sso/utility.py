@@ -3,7 +3,6 @@ import hashlib
 import logging
 import warnings
 from dataclasses import asdict
-from urllib.parse import urlparse
 
 import DateTime
 from persistent.mapping import PersistentMapping
@@ -78,16 +77,26 @@ class SingleSignonUtility:
 
     def get_login_from_request(self, request: HTTPRequest) -> str:
         """Generate the login name from the request headers"""
-        domain = self.get_domain_from_request(request)
+        url = self.get_idp_url_from_request(request)
         user_header = self.get_setting(name="shib_header_user")
         login = request.environ.get(user_header)
         if is_null(login):
             return ""
-        return f"{login}@{domain}"
+        return f"{login}@{url}"
 
-    def get_domain_from_request(self, request: HTTPRequest) -> str:
+    def get_idp_url_from_login(self, login_name: str) -> tuple[str, str]:
+        """If given wohnlice@adfs.omni.imsweb.com, return ["wohnlice", "adfs.omni.imsweb.com"]"""
+        name = login_name.split("@")
+        url = name.pop()
+        name = "@".join(name)
+        if url not in self.idp_info:
+            return "unknown IDP", login_name
+
+        return url, name
+
+    def get_idp_url_from_request(self, request: HTTPRequest) -> str:
         idp_header = self.get_setting(name="shib_header_idp")
-        return urlparse(request.environ.get(idp_header)).netloc or request.environ.get(idp_header)
+        return request.environ.get(idp_header) or request.environ.get(idp_header)
 
     def loginname_from_request(self, request: HTTPRequest) -> str:  # pragma: no cover
         warnings.warn("Use get_login_from_request", DeprecationWarning, stacklevel=2)
@@ -101,19 +110,9 @@ class SingleSignonUtility:
             idps[idp_id] = asdict(idp)
         return idps
 
-    def get_idp_domain_from_login(self, login_name: str) -> tuple[str, str]:
-        """If given wohnlice@adfs.omni.imsweb.com, return ["wohnlice", "adfs.omni.imsweb.com"]"""
-        name = login_name.split("@")
-        domain = name.pop()
-        name = "@".join(name)
-        if domain not in self.idp_info:
-            return "unknown IDP", login_name
-
-        return domain, name
-
     def extract_idp_login(self, login_name):
-        warnings.warn("Use get_idp_domain_from_login", category=DeprecationWarning, stacklevel=2)
-        return self.get_idp_domain_from_login(login_name)
+        warnings.warn("Use get_idp_url_from_login", category=DeprecationWarning, stacklevel=2)
+        return self.get_idp_url_from_login(login_name)
 
     @staticmethod
     def generate_password(_string: str) -> str:
@@ -123,9 +122,9 @@ class SingleSignonUtility:
 
     def get_url_logout(self, request: HTTPRequest) -> str:
         """Get the logout URL. This will be determined by the REQUEST headers and IdP settings"""
-        domain = self.get_domain_from_request(request)
-        if domain:
-            logout = self.idp_info.get(domain, {}).get("logout")
+        url = self.get_idp_url_from_request(request)
+        if url:
+            logout = self.idp_info.get(url, {}).get("logout")
             if logout:
                 return logout
         return self.get_setting(name="generic_logout")
@@ -139,9 +138,9 @@ class SingleSignonUtility:
         """Optional - used in mail templates. Use this to direct a user to register with one of your IdPs"""
         return self.get_setting(name="registration_url")
 
-    def get_idp_from_domain(self, domain: str) -> str:
-        """Get all info (title, logout url) for the given domain"""
-        return self.idp_info[domain]["name"] if domain in self.idp_info else domain
+    def get_idp_from_url(self, url: str) -> str:
+        """Get all info (title, logout url) for the given url"""
+        return self.idp_info[url]["name"] if url in self.idp_info else url
 
     def set_login_name(self, user_id: str, login_name: str) -> None:
         """Login name is a property of a user"""
@@ -173,8 +172,8 @@ class SingleSignonUtility:
         to_email = self.get_setting(name="notify_relinked")
         if to_email:
             portal_title = api.portal.get_registry_record("plone.site_title")
-            domain = self.get_idp_domain_from_login(usr.getUserName())[0]
-            idp = self.get_idp_from_domain(domain)
+            url = self.get_idp_url_from_login(usr.getUserName())[0]
+            idp = self.get_idp_from_url(url)
             subj = f"{portal_title} user has updated their account"
             msg = (
                 f"The {portal_title} user {usr.getProperty('fullname')} linked their {usr.getId()} portal account "
@@ -311,7 +310,7 @@ class ReactivationUtility:
     IAuthenticationCredentials plugin has rejected them due to their `status`.
 
     Steps to take:
-    1. Identify the user by id@domain from the Shibboleth headers
+    1. Identify the user by id@url from the Shibboleth headers
     2. Generate a unique key for this user and register it with the portal annotations. Set an expiration date
     3. Send the user a link to the reactivation view that contains the unique key
     4. Validate the key matches the user and is not expired and has not since become disabled
@@ -327,7 +326,7 @@ class ReactivationUtility:
 
     @property
     def user_id(self) -> str:
-        """The annotation value here is the id@domain login name we get from Shibboleth headers"""
+        """The annotation value here is the id@url login name we get from Shibboleth headers"""
         annotations = IAnnotations(getRequest())
         try:
             if usr_id := annotations[AUTHENTICATED_KEY]:

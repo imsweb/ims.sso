@@ -157,7 +157,7 @@ class IUserExpiryUtility(Interface):
 
 
 class ISsoIdp(Interface):
-    domain = Attribute("Idp domain name")
+    domain = Attribute("Idp URL")
     name = Attribute("User friendly name")
     description = Attribute("Description of IdP (optional)")
     registration = Attribute("Registration URL (optional)")
