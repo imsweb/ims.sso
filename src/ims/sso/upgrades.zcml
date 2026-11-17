@@ -21,7 +21,7 @@
       />
 
   <genericsetup:upgradeStep
-      title="remove the text in modal settings in login actions"
+      title="remove the text in modal settings for login actions"
       profile="ims.sso:default"
       source="3"
       destination="4"

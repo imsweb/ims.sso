@@ -18,6 +18,9 @@
                 <element value="View"/>
             </property>
             <property name="visible">True</property>
+            <property name="modal"
+                type="text"
+            ></property>
         </object>
         <object name="change-password" meta_type="CMF Action" i18n:domain="plone" insert-before="myportals">
             <property name="title" i18n:translate="">Change Password</property>
@@ -27,9 +30,6 @@
                 <element value="Set own password"/>
             </property>
             <property name="visible">True</property>
-            <property name="modal"
-                type="text"
-            ></property>
         </object>
         <object name="personal-info" meta_type="CMF Action" i18n:domain="plone">
             <property name="title" i18n:translate="">Personal Information</property>
