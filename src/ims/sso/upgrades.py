@@ -8,5 +8,5 @@ def to_2(context):
     context.runImportStepFromProfile("ims.sso:default", "plone.app.registry")
 
 
-def to_3(context):
+def update_actions(context):
     context.runImportStepFromProfile("ims.sso:default", "actions")
