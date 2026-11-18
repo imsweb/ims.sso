@@ -105,7 +105,7 @@ jobs:
         run: |
           CURRENT=$(hatch version)
           if [[ "$CURRENT" =~ ^(.+a)([0-9]+)$ ]]; then
-            # already an alpha (e.g. 1.1.0a1) -> bump the alpha counter: 1.1.0a1 -> 1.1.0a2
+            # already an alpha (e.g. 1.1.6a1) -> bump the alpha counter: 1.1.6a1 -> 1.1.6a2
             NEXT="${BASH_REMATCH[1]}$(( ${BASH_REMATCH[2]} + 1 ))"
           else
             # Segment based on the towncrier fragment types in changes/:
@@ -114,9 +114,16 @@ jobs:
             ls changes/*.bugfix >/dev/null 2>&1 && SEGMENT=patch
             ls changes/*.feature >/dev/null 2>&1 && SEGMENT=minor
             ls changes/*.breaking >/dev/null 2>&1 && SEGMENT=major
-            hatch version $SEGMENT
-            # first alpha of the next stable version: 1.1.0 -> 1.1.0a1
-            NEXT="$(hatch version)a1"
+            # compute the next stable version without writing it: hatch refuses      
+            # to set 1.1.6a1 after 1.1.6 has already been written                    
+            IFS=. read -r MAJOR MINOR PATCH <<<"$CURRENT"                            
+            case "$SEGMENT" in                                                       
+              major) NEXT="$((MAJOR + 1)).0.0" ;;                                    
+              minor) NEXT="$MAJOR.$((MINOR + 1)).0" ;;                               
+              *)     NEXT="$MAJOR.$MINOR.$((PATCH + 1))" ;;                          
+            esac                                                                     
+            # first alpha of the next stable version: 1.1.6 -> 1.1.6a1               
+            NEXT="${NEXT}a1"                                                         
           fi
           hatch version "$NEXT"
           echo "PKG_VERSION=$NEXT" >> $GITHUB_ENV
