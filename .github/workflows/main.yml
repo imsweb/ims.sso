@@ -23,7 +23,6 @@ jobs:
       with:
         args: "format --check --diff"
     - name: Check for towncrier change file
-      uses: actions/checkout@v3
       if: github.ref != 'refs/heads/main'
       run: |
         fragments=$(find changes -type f ! -name '.gitkeep')
