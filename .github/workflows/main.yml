@@ -75,7 +75,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # test mode: releases alphas when merged into release_test
+    # (original trigger: if: github.ref == 'refs/heads/main')
+    if: github.ref == 'refs/heads/release_test'
     permissions:
       contents: write
       id-token: write
@@ -94,30 +96,43 @@ jobs:
       - name: Install release tools
         run: |
           uv venv
+          # make hatch/towncrier available to the later steps
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
           uv pip install .[build]
           uv pip install hatch towncrier
 
       - name: Bump version and build changelog
         run: |
-          # works for bugfix, chore and any others
-          SEGMENT=patch 
-          ls changes/*.feature >/dev/null 2>&1 && SEGMENT=minor
-          ls changes/*.breaking >/dev/null 2>&1 && SEGMENT=major
-          hatch version $SEGMENT
-          echo "PKG_VERSION=$(hatch version)" >> $GITHUB_ENV
+          CURRENT=$(hatch version)
+          if [[ "$CURRENT" =~ ^(.+a)([0-9]+)$ ]]; then
+            # already an alpha (e.g. 1.1.0a1) -> bump the alpha counter: 1.1.0a1 -> 1.1.0a2
+            NEXT="${BASH_REMATCH[1]}$(( ${BASH_REMATCH[2]} + 1 ))"
+          else
+            # Segment based on the towncrier fragment types in changes/:
+            # bugfix/docs/chore -> patch, feature -> minor, breaking -> major
+            SEGMENT=patch
+            ls changes/*.bugfix >/dev/null 2>&1 && SEGMENT=patch
+            ls changes/*.feature >/dev/null 2>&1 && SEGMENT=minor
+            ls changes/*.breaking >/dev/null 2>&1 && SEGMENT=major
+            hatch version $SEGMENT
+            # first alpha of the next stable version: 1.1.0 -> 1.1.0a1
+            NEXT="$(hatch version)a1"
+          fi
+          hatch version "$NEXT"
+          echo "PKG_VERSION=$NEXT" >> $GITHUB_ENV
           towncrier build --yes --version $PKG_VERSION
 
       - name: Pre-release check
         run: |
-            # equivalent of: imsplone prerelease_check <package> <version>
-            if git rev-parse -q --verify "refs/tags/${PKG_VERSION}" >/dev/null; then
-              echo "::error::Tag already exists: ${PKG_VERSION}"
-              exit 1
-            fi
-            if curl -fsSL "https://pypi.org/pypi/${{ github.event.repository.name }}/${PKG_VERSION}/json" >/dev/null; then
-              echo "::error::Package already released: ${{ github.event.repository.name }} - ${PKG_VERSION}"
-              exit 1
-            fi
+          # equivalent of: imsplone prerelease_check <package> <version>
+          if git rev-parse -q --verify "refs/tags/${PKG_VERSION}" >/dev/null; then
+            echo "::error::Tag already exists: ${PKG_VERSION}"
+            exit 1
+          fi
+          if curl -fsSL "https://pypi.org/pypi/${{ github.event.repository.name }}/${PKG_VERSION}/json" >/dev/null; then
+            echo "::error::Package already released: ${{ github.event.repository.name }} - ${PKG_VERSION}"
+            exit 1
+          fi
 
       - name: Commit and tag release
         run: |
@@ -129,7 +144,7 @@ jobs:
 
       - name: Push release commit and tag
         run: |
-          git push origin HEAD:main
+          git push origin HEAD:release_test
           git push origin ${PKG_VERSION}
 
       - name: Build and publish to PyPI
