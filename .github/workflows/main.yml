@@ -61,3 +61,10 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: _build
         force_orphan: true
+
+  check_changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check changelog folder
+        -
