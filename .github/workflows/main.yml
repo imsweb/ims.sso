@@ -22,6 +22,16 @@ jobs:
       uses: astral-sh/ruff-action@v4.0.0
       with:
         args: "format --check --diff"
+    - name: Check for towncrier change file
+      if: github.ref != 'refs/heads/main'
+      run: |
+        fragments=$(find changes -type f ! -name '.gitkeep')
+        if [ -z "$fragments" ]; then
+          echo "::error::No news fragments found. Add a towncrier change file (e.g. changes/<issue-number>.bugfix) before merging."
+          exit 1
+        fi
+        echo "Found change file(s):"
+        echo "$fragments"
 
   test:
     runs-on: ubuntu-latest
@@ -61,3 +71,87 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: _build
         force_orphan: true
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # test mode: releases alphas when merged into release_test
+    # (original trigger: if: github.ref == 'refs/heads/main')
+    if: github.ref == 'refs/heads/release_test'
+    permissions:
+      contents: write
+      id-token: write
+    environment:
+      name: pypi
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install release tools
+        run: |
+          uv venv
+          # make hatch/towncrier available to the later steps
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+          uv pip install .[build]
+          uv pip install hatch towncrier
+
+      - name: Bump version and build changelog
+        run: |
+          CURRENT=$(hatch version)
+          if [[ "$CURRENT" =~ ^(.+a)([0-9]+)$ ]]; then
+            # already an alpha (e.g. 1.1.0a1) -> bump the alpha counter: 1.1.0a1 -> 1.1.0a2
+            NEXT="${BASH_REMATCH[1]}$(( ${BASH_REMATCH[2]} + 1 ))"
+          else
+            # Segment based on the towncrier fragment types in changes/:
+            # bugfix/docs/chore -> patch, feature -> minor, breaking -> major
+            SEGMENT=patch
+            ls changes/*.bugfix >/dev/null 2>&1 && SEGMENT=patch
+            ls changes/*.feature >/dev/null 2>&1 && SEGMENT=minor
+            ls changes/*.breaking >/dev/null 2>&1 && SEGMENT=major
+            hatch version $SEGMENT
+            # first alpha of the next stable version: 1.1.0 -> 1.1.0a1
+            NEXT="$(hatch version)a1"
+          fi
+          hatch version "$NEXT"
+          echo "PKG_VERSION=$NEXT" >> $GITHUB_ENV
+          towncrier build --yes --version $PKG_VERSION
+
+      - name: Pre-release check
+        run: |
+          # equivalent of: imsplone prerelease_check <package> <version>
+          if git rev-parse -q --verify "refs/tags/${PKG_VERSION}" >/dev/null; then
+            echo "::error::Tag already exists: ${PKG_VERSION}"
+            exit 1
+          fi
+          if curl -fsSL "https://pypi.org/pypi/${{ github.event.repository.name }}/${PKG_VERSION}/json" >/dev/null; then
+            echo "::error::Package already released: ${{ github.event.repository.name }} - ${PKG_VERSION}"
+            exit 1
+          fi
+
+      - name: Commit and tag release
+        run: |
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git add .
+          git commit -m "release for $PKG_VERSION [skip ci]"
+          git tag -a ${PKG_VERSION} -m "creating tag ${PKG_VERSION}"
+
+      - name: Push release commit and tag
+        run: |
+          git push origin HEAD:release_test
+          git push origin ${PKG_VERSION}
+
+      - name: Build and publish to PyPI
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          build: false
+          packages-dir: dist/
