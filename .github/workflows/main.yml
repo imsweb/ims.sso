@@ -126,6 +126,8 @@ jobs:
             NEXT="${NEXT}a1"                                                         
           fi
           hatch version "$NEXT"
+          # set PKG_VERSION for this step ($GITHUB_ENV only affects later steps)
+          export PKG_VERSION="$NEXT"
           echo "PKG_VERSION=$NEXT" >> $GITHUB_ENV
           towncrier build --yes --version $PKG_VERSION
 
