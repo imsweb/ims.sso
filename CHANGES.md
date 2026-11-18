@@ -1,3 +1,12 @@
+# ims.sso 1.1.6a2 (2026-11-18)
+
+## Other tasks
+
+- [72033]
+
+[72033]: https://squishlist.com/ims/plone/72033
+
+
 # ims.sso 1.1.6a1 (2026-11-18)
 
 ## Other tasks
