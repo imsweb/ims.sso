@@ -17,7 +17,15 @@
       profile="ims.sso:default"
       source="2"
       destination="3"
-      handler=".upgrades.to_3"
+      handler=".upgrades.update_actions"
+      />
+
+  <genericsetup:upgradeStep
+      title="remove the text in modal settings for login actions"
+      profile="ims.sso:default"
+      source="3"
+      destination="4"
+      handler=".upgrades.update_actions"
       />
 
 </configure>
