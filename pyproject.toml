@@ -104,7 +104,7 @@ check = true
 
 [tool.towncrier.fragment.chore]
 name = "Other tasks"
-showcontent = false
+showcontent = true
 check = false
 
 [tool.hatch.version]
