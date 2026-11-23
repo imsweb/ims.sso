@@ -129,3 +129,13 @@ jobs:
         run: |
           git push origin HEAD:main
           git push origin ${PKG_VERSION}
+
+      # publish.yml listens for "release: published" — creating the release
+      # here (only reached when update-version succeeds) is what starts it
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${PKG_VERSION}" \
+            --title "${PKG_VERSION}" \
+            --generate-notes
