@@ -77,8 +77,6 @@ jobs:
     runs-on: ubuntu-latest
     # only runs after lint, test and docs have all succeeded
     needs: [lint, test, docs]
-    # test mode: releases alphas when merged into release_test
-    # (original trigger: if: github.ref == 'refs/heads/main')
     if: github.ref == 'refs/heads/release_test'
     permissions:
       contents: write
@@ -140,10 +138,10 @@ jobs:
             echo "::error::Tag already exists: ${PKG_VERSION}"
             exit 1
           fi
-          #if curl -fsSL "https://pypi.org/pypi/${{ github.event.repository.name }}/${PKG_VERSION}/json" >/dev/null; then
-          #  echo "::error::Package already released: ${{ github.event.repository.name }} - ${PKG_VERSION}"
-          #  exit 1
-          #fi
+          if curl -fsSL "https://pypi.org/pypi/${{ github.event.repository.name }}/${PKG_VERSION}/json" >/dev/null; then
+            echo "::error::Package already released: ${{ github.event.repository.name }} - ${PKG_VERSION}"
+            exit 1
+          fi
 
       - name: Commit and tag release
         run: |
@@ -157,12 +155,3 @@ jobs:
         run: |
           git push origin HEAD:release_test
           git push origin ${PKG_VERSION}
-
-      - name: Build and publish to PyPI
-        run: uv build
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          build: false
-          packages-dir: dist/
