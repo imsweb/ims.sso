@@ -23,7 +23,7 @@ jobs:
       with:
         args: "format --check --diff"
     - name: Check for towncrier change file
-      if: github.ref != 'refs/heads/main'
+      if: github.ref_name != github.event.repository.default_branch
       run: |
         fragments=$(find changes -type f ! -name '.gitkeep')
         if [ -z "$fragments" ]; then
@@ -65,17 +65,18 @@ jobs:
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      if: ${{ github.event_name == 'push' && github.ref_name != github.event.repository.default_branch }}
       with:
         publish_branch: gh-pages
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: _build
         force_orphan: true
 
-  release:
-    name: Release
+  update-version:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # only runs after lint, test and docs have all succeeded
+    needs: [ lint, test, docs ]
+    if: github.ref_name != github.event.repository.default_branch
     permissions:
       contents: write
       id-token: write
@@ -94,6 +95,7 @@ jobs:
       - name: Install release tools
         run: |
           uv venv
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
           uv pip install .[build]
           uv pip install hatch towncrier
 
@@ -104,7 +106,9 @@ jobs:
           ls changes/*.feature >/dev/null 2>&1 && SEGMENT=minor
           ls changes/*.breaking >/dev/null 2>&1 && SEGMENT=major
           hatch version $SEGMENT
-          echo "PKG_VERSION=$(hatch version)" >> $GITHUB_ENV
+          # set PKG_VERSION for this step ($GITHUB_ENV only affects later steps)
+          export PKG_VERSION="$NEXT"
+          echo "PKG_VERSION=$NEXT" >> $GITHUB_ENV
           towncrier build --yes --version $PKG_VERSION
 
       - name: Pre-release check
@@ -131,12 +135,3 @@ jobs:
         run: |
           git push origin HEAD:main
           git push origin ${PKG_VERSION}
-
-      - name: Build and publish to PyPI
-        run: uv build
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          build: false
-          packages-dir: dist/
