@@ -150,9 +150,8 @@ jobs:
           git push origin HEAD:release_test
           git push origin ${PKG_VERSION}
 
-      # publish.yml is chained to this workflow (workflow_run) and only starts
-      # when this whole run succeeds, so pushing here is what releases: it
-      # checks out this commit, builds it and uploads it to PyPI
+      # publish.yml listens for "release: published" — creating the release
+      # here (only reached when update-version succeeds) is what starts it
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
