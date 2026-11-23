@@ -75,8 +75,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # test mode: releases alphas when merged into release_test
-    # (original trigger: if: github.ref == 'refs/heads/main')
+    # only runs after lint, test and docs have all succeeded
+    needs: [lint, test, docs]
     if: github.ref == 'refs/heads/release_test'
     permissions:
       contents: write
@@ -150,3 +150,8 @@ jobs:
           git add .
           git commit -m "release for $PKG_VERSION [skip ci]"
           git tag -a ${PKG_VERSION} -m "creating tag ${PKG_VERSION}"
+
+      - name: Push release commit and tag
+        run: |
+          git push origin HEAD:release_test
+          git push origin ${PKG_VERSION}
