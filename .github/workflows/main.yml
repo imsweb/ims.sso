@@ -138,10 +138,10 @@ jobs:
             echo "::error::Tag already exists: ${PKG_VERSION}"
             exit 1
           fi
-          #if curl -fsSL "https://pypi.org/pypi/${{ github.event.repository.name }}/${PKG_VERSION}/json" >/dev/null; then
-          #  echo "::error::Package already released: ${{ github.event.repository.name }} - ${PKG_VERSION}"
-          #  exit 1
-          #fi
+          if curl -fsSL "https://pypi.org/pypi/${{ github.event.repository.name }}/${PKG_VERSION}/json" >/dev/null; then
+            echo "::error::Package already released: ${{ github.event.repository.name }} - ${PKG_VERSION}"
+            exit 1
+          fi
 
       - name: Commit and tag release
         run: |
@@ -150,17 +150,3 @@ jobs:
           git add .
           git commit -m "release for $PKG_VERSION [skip ci]"
           git tag -a ${PKG_VERSION} -m "creating tag ${PKG_VERSION}"
-
-      - name: Push release commit and tag
-        run: |
-          git push origin HEAD:release_test
-          git push origin ${PKG_VERSION}
-
-      - name: Build and publish to PyPI
-        run: uv build
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          build: false
-          packages-dir: dist/
