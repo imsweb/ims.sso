@@ -147,8 +147,10 @@ jobs:
 
       - name: Push release commit and tag
         run: |
-          git push origin HEAD:release_test
-          git push origin ${PKG_VERSION}
+          git push --atomic --no-thin origin \
+            "HEAD:refs/heads/${{ github.ref_name }}" \
+            "refs/tags/$PKG_VERSION"
+
 
 
       - name: Create GitHub Release
