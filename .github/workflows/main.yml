@@ -95,7 +95,7 @@ jobs:
       - name: Bump version and build changelog
         run: |
           # works for bugfix, chore and any others
-          SEGMENT=patch 
+          SEGMENT=patch
           ls changes/*.feature >/dev/null 2>&1 && SEGMENT=minor
           ls changes/*.breaking >/dev/null 2>&1 && SEGMENT=major
           PKG_VERSION="$(uv run hatch version "$SEGMENT")"

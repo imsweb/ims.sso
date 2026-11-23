@@ -43,7 +43,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      # guards against someone merging to release_test between the run ending
+      # guards against someone merging to default branch between the run ending
       # and this workflow starting: fail loudly instead of shipping wrong code
       - name: Verify release commit
         run: |
