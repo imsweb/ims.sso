@@ -150,3 +150,8 @@ jobs:
           git add .
           git commit -m "release for $PKG_VERSION [skip ci]"
           git tag -a ${PKG_VERSION} -m "creating tag ${PKG_VERSION}"
+
+      - name: Push release commit and tag
+        run: |
+          git push origin HEAD:release_test
+          git push origin ${PKG_VERSION}
