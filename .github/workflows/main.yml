@@ -15,9 +15,7 @@ jobs:
     - name: Set up Python
       run: uv python install
     - name: Install dependencies
-      run: |
-        uv sync --all-extras --dev
-        uv pip install ruff
+      run: uv sync --all-extras
     - name: Ruff
       uses: astral-sh/ruff-action@v4.0.0
       with:
@@ -93,16 +91,11 @@ jobs:
         run: uv python install
 
       - name: Install release tools
-        run: |
-          uv venv
-          # make hatch/towncrier available to the later steps
-          echo "$PWD/.venv/bin" >> $GITHUB_PATH
-          uv pip install .[build]
-          uv pip install hatch towncrier
+        run: uv sync --all-extras
 
       - name: Bump version and build changelog
         run: |
-          CURRENT=$(hatch version)
+          CURRENT=$(uv run hatch version)
           if [[ "$CURRENT" =~ ^(.+a)([0-9]+)$ ]]; then
             # already an alpha (e.g. 1.1.6a1) -> bump the alpha counter: 1.1.6a1 -> 1.1.6a2
             NEXT="${BASH_REMATCH[1]}$(( ${BASH_REMATCH[2]} + 1 ))"
@@ -124,11 +117,11 @@ jobs:
             # first alpha of the next stable version: 1.1.6 -> 1.1.6a1               
             NEXT="${NEXT}a1"                                                         
           fi
-          hatch version "$NEXT"
+          uv run hatch version "$NEXT"
           # set PKG_VERSION for this step ($GITHUB_ENV only affects later steps)
           export PKG_VERSION="$NEXT"
           echo "PKG_VERSION=$NEXT" >> $GITHUB_ENV
-          towncrier build --yes --version $PKG_VERSION
+          uv run towncrier build --yes --version $PKG_VERSION
 
       - name: Pre-release check
         run: |

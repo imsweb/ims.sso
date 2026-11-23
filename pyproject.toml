@@ -27,6 +27,7 @@ homepage = "https://github.com/imsweb/ims.sso"
 [project.optional-dependencies]
 test = ["plone.app.testing", "plone.app.robotframework", "pytest_plone", "pytest-cov", "collective.mockmailhost"]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinx-tabs", "sphinx-copybutton"]
+dev = ["ruff", "hatch", "towncrier"]
 
 [project.entry-points."plone.autoinclude.plugin"]
 target = "plone"
