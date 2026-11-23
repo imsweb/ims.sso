@@ -3,17 +3,15 @@
 # Trigger: workflow_run — fires when a run of the workflow named "main"
 # (main.yml) finishes. The job below then requires that the run fully
 # succeeded (lint, test and docs included, because update-version has
-# needs: [lint, test, docs]) AND that it ran on release_test, which is the
-# only branch where update-version runs at all. So: merge into release_test,
-# pipeline green, version bumped/tagged/pushed by update-version, then this
-# workflow checks out that release commit, builds it and publishes it.
-#
-# Publishing uses the EXISTING PyPI trusted publisher, which is registered for
-# the workflow FILE "publish.yml" + environment "pypi" — renaming this file
-# (or dropping the environment below) breaks uploads with "invalid-publisher".
+# needs: [lint, test, docs]) AND that it ran on the default branch, which is the
+# only branch where update-version runs at all.
 #
 # NOTE: a workflow_run trigger is only read from the copy of this file on the
 #       repo's DEFAULT branch — keep this version merged to `main`.
+#
+# A manual run (Actions tab -> "Upload Python Package" -> Run workflow) starts
+# the publish-manual job, which publishes the release tag you enter to PyPI. Use
+# it to (re)publish a release that the automatic run missed.
 
 name: Upload Python Package
 
@@ -39,7 +37,7 @@ jobs:
     if: >-
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'release_test'
+      github.event.workflow_run.head_branch == github.event.repository.default_branch
     permissions:
       contents: read
       id-token: write
@@ -49,21 +47,21 @@ jobs:
     steps:
       # NOT head_sha: that is the commit which TRIGGERED main.yml, while the
       # release commit (version bump + changelog) is created during the run —
-      # the release_test tip is that release commit once the run has finished
+      # the default branch tip is that release commit once the run has finished
       - name: Checkout release commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.workflow_run.head_branch }}
 
-      # guards against someone merging to release_test between the run ending
+      # guards against someone merging to default branch between the run ending
       # and this workflow starting: fail loudly instead of shipping wrong code
       - name: Verify release commit
         run: |
           TAG=$(git tag --points-at HEAD | head -1)
           SUBJECT=$(git log -1 --format=%s)
           if [ -z "$TAG" ] || [ "$SUBJECT" != "release for $TAG [skip ci]" ]; then
-            echo "::error::release_test tip is not a release commit (got: $SUBJECT)"
+            echo "::error::default branch tip is not a release commit (got: $SUBJECT)"
             exit 1
           fi
           echo "Publishing $TAG"
