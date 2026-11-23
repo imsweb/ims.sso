@@ -145,11 +145,12 @@ jobs:
           git push origin HEAD:release_test
           git push origin ${PKG_VERSION}
 
-      - name: Build distributions
-        run: uv build
-
-      - name: Upload distributions
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-dists
-          path: dist/
+      # publish.yml listens for "release: published" — creating the release
+      # here (only reached when update-version succeeds) is what starts it
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${PKG_VERSION}" \
+            --title "${PKG_VERSION}" \
+            --generate-notes
