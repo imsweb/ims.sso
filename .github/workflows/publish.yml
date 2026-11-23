@@ -1,15 +1,15 @@
 # Uploads ims.sso to PyPI after the "main" workflow (main.yml) completes.
 # Only runs when that run fully succeeded on release_test — i.e. after its
-# update-version job built the release and pushed the commit/tag. The wheels
-# come from that run's "release-dists" artifact, so nothing is rebuilt here.
+# update-version job built the changelog and pushed the release commit/tag.
+# This workflow checks out that release commit, builds the distributions and
+# uploads them — main.yml does not build anything.
 #
 # Uses the EXISTING trusted publisher on PyPI (workflow name
 # "Upload Python Package" + environment "pypi") — do NOT rename this workflow
 # or the publisher stops matching.
 #
 # NOTE: workflow_run triggers only fire for the copy of this file that lives
-#       on the repo's DEFAULT branch — merge this version to `main` for it
-#       to ever run.
+#       on the repo's DEFAULT branch — keep this version merged to `main`.
 
 name: Upload Python Package
 
@@ -20,7 +20,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 jobs:
   publish:
@@ -32,19 +31,33 @@ jobs:
       github.event.workflow_run.head_branch == 'release_test'
     permissions:
       contents: read
-      actions: read
       id-token: write
     environment:
       name: pypi
       url: https://pypi.org/p/ims.sso
     steps:
-      - name: Download distributions
-        uses: actions/download-artifact@v4
+      # NOT head_sha: that is the commit which TRIGGERED main.yml, while the
+      # release commit (version bump + changelog) was created during the run —
+      # the release_test tip is the release commit once the run has finished
+      - name: Checkout release commit
+        uses: actions/checkout@v4
         with:
-          name: release-dists
-          path: dist/
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Verify release commit
+        run: |
+          if ! git log -1 --format=%s | grep -q "^release for"; then
+            echo "::error::release_test tip is not a release commit (was something merged after the run?)"
+            exit 1
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - name: Set up Python
+        run: uv python install
+
+      - name: Build distributions
+        run: uv build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
