@@ -8,6 +8,10 @@
 #
 # NOTE: a workflow_run trigger is only read from the copy of this file on the
 #       repo's DEFAULT branch — keep this version merged to `main`.
+#
+# A manual run (Actions tab -> "Upload Python Package" -> Run workflow) starts
+# the publish-manual job, which publishes the release tag you enter to PyPI. Use
+# it to (re)publish a release that the automatic run missed.
 
 name: Upload Python Package
 
