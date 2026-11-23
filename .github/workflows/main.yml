@@ -23,7 +23,7 @@ jobs:
       with:
         args: "format --check --diff"
     - name: Check for towncrier change file
-      if: github.ref != 'refs/heads/main'
+      if: github.ref == 'refs/heads/release_test'
       run: |
         fragments=$(find changes -type f ! -name '.gitkeep')
         if [ -z "$fragments" ]; then
@@ -68,7 +68,7 @@ jobs:
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/release_test' }}
       with:
         publish_branch: gh-pages
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -150,8 +150,7 @@ jobs:
           git push origin HEAD:release_test
           git push origin ${PKG_VERSION}
 
-      # publish.yml listens for "release: published" — creating the release
-      # here (only reached when update-version succeeds) is what starts it
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
