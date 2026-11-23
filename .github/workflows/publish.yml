@@ -8,6 +8,10 @@
 #
 # NOTE: a workflow_run trigger is only read from the copy of this file on the
 #       repo's DEFAULT branch — keep this version merged to `main`.
+#
+# A manual run (Actions tab -> "Upload Python Package" -> Run workflow) starts
+# the publish-manual job, which publishes the release tag you enter to PyPI. Use
+# it to (re)publish a release that the automatic run missed.
 
 name: Upload Python Package
 
@@ -15,6 +19,12 @@ on:
   workflow_run:
     workflows: ["main"]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (e.g. 1.1.6a14)"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -25,6 +35,7 @@ jobs:
     # whole "main" run green (lint, test, docs, update-version) AND it was the
     # release branch — update-version only runs there
     if: >-
+      github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == github.event.repository.default_branch
     permissions:
@@ -51,6 +62,48 @@ jobs:
           SUBJECT=$(git log -1 --format=%s)
           if [ -z "$TAG" ] || [ "$SUBJECT" != "release for $TAG [skip ci]" ]; then
             echo "::error::default branch tip is not a release commit (got: $SUBJECT)"
+            exit 1
+          fi
+          echo "Publishing $TAG"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - name: Set up Python
+        run: uv python install
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          build: false
+          packages-dir: dist/
+
+  # Manual trigger (Actions tab -> Run workflow, enter a release tag). Publishes
+  # that tag's commit to PyPI, e.g. to (re)publish a release the run missed.
+  publish-manual:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ims.sso
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.tag }}
+
+      - name: Verify release commit
+        run: |
+          TAG=$(git tag --points-at HEAD | head -1)
+          SUBJECT=$(git log -1 --format=%s)
+          if [ -z "$TAG" ] || [ "$SUBJECT" != "release for $TAG [skip ci]" ]; then
+            echo "::error::${{ inputs.tag }} does not point at a release commit (got: $SUBJECT)"
             exit 1
           fi
           echo "Publishing $TAG"
