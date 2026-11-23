@@ -72,8 +72,7 @@ jobs:
         publish_dir: _build
         force_orphan: true
 
-  release:
-    name: Release
+  update-version:
     runs-on: ubuntu-latest
     # only runs after lint, test and docs have all succeeded
     needs: [lint, test, docs]
@@ -155,3 +154,12 @@ jobs:
         run: |
           git push origin HEAD:release_test
           git push origin ${PKG_VERSION}
+
+      - name: Build and publish to PyPI
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          build: false
+          packages-dir: dist/
