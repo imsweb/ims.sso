@@ -77,9 +77,6 @@ jobs:
     if: github.ref == 'refs/heads/release_test'
     permissions:
       contents: write
-      id-token: write
-    environment:
-      name: pypi
     steps:
       - uses: actions/checkout@v3
         with:
@@ -148,11 +145,11 @@ jobs:
           git push origin HEAD:release_test
           git push origin ${PKG_VERSION}
 
-      - name: Build and publish to PyPI
+      - name: Build distributions
         run: uv build
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
         with:
-          build: false
-          packages-dir: dist/
+          name: release-dists
+          path: dist/

@@ -1,70 +1,47 @@
-# This workflow will upload a Python Package to PyPI when a release is created
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# Uploads ims.sso to PyPI after the "main" workflow (main.yml) completes.
+# Only runs when that run fully succeeded on release_test — i.e. after its
+# update-version job built the release and pushed the commit/tag. The wheels
+# come from that run's "release-dists" artifact, so nothing is rebuilt here.
+#
+# NOTE 1: workflow_run triggers only fire for the copy of this file that lives
+#         on the repo's DEFAULT branch — merge this version to `main` for it
+#         to ever run.
+# NOTE 2: uses a PyPI API token stored as the repo secret PYPI_API_TOKEN
+#         (Settings → Secrets and variables → Actions), so no PyPI-side
+#         trusted-publisher entry is required.
 
 name: Upload Python Package
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["main"]
+    types: [completed]
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
-  release-build:
+  publish:
     runs-on: ubuntu-latest
-
+    # whole "main" run green (lint, test, docs, update-version) AND it was the
+    # release branch — update-version only runs there
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'release_test'
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-
-      - name: Build release distributions
-        run: |
-          # NOTE: put your own distribution build steps here.
-          python -m pip install build
-          python -m build
-
-      - name: Upload distributions
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-dists
-          path: dist/
-
-  pypi-publish:
-    runs-on: ubuntu-latest
-    needs:
-      - release-build
-    permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
-
-    # Dedicated environments with protections for publishing are strongly recommended.
-    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
-    environment:
-      name: pypi
-      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
-      url: https://pypi.org/p/ims.sso
-      #
-      # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
-      # ALTERNATIVE: exactly, uncomment the following line instead:
-      # url: https://pypi.org/project/YOURPROJECT/${{ github.event.release.name }}
-
-    steps:
-      - name: Retrieve release distributions
+      - name: Download distributions
         uses: actions/download-artifact@v4
         with:
           name: release-dists
           path: dist/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish release distributions to PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          build: false
           packages-dir: dist/
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
