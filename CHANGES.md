@@ -1,3 +1,12 @@
+# ims.sso 1.1.6a10 (2026-11-23)
+
+## Other tasks
+
+- check auto publish ([72033])
+
+[72033]: https://squishlist.com/ims/plone/72033
+
+
 # ims.sso 1.1.6a9 (2026-11-23)
 
 ## Other tasks
