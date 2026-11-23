@@ -75,6 +75,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # only runs after lint, test and docs have all succeeded
+    needs: [lint, test, docs]
     # test mode: releases alphas when merged into release_test
     # (original trigger: if: github.ref == 'refs/heads/main')
     if: github.ref == 'refs/heads/release_test'
