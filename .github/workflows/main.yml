@@ -98,10 +98,11 @@ jobs:
           SEGMENT=patch
           ls changes/*.feature >/dev/null 2>&1 && SEGMENT=minor
           ls changes/*.breaking >/dev/null 2>&1 && SEGMENT=major
-          PKG_VERSION="$(uv run hatch version "$SEGMENT")"
-          export PKG_VERSION
+          uv run hatch version "$SEGMENT"
+          # set PKG_VERSION for this step ($GITHUB_ENV only affects later steps)
+          PKG_VERSION="$(uv run hatch version)"
           echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
-          uv run towncrier build --yes --version "$PKG_VERSION"
+          uv run towncrier build --yes --version $PKG_VERSION
 
       - name: Pre-release check
         run: |
