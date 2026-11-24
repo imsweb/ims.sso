@@ -3,7 +3,7 @@ name: main
 on: [push]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   lint:
@@ -15,13 +15,21 @@ jobs:
     - name: Set up Python
       run: uv python install
     - name: Install dependencies
-      run: |
-        uv sync --all-extras --dev
-        uv pip install ruff
+      run: uv sync --all-extras
     - name: Ruff
       uses: astral-sh/ruff-action@v4.0.0
       with:
         args: "format --check --diff"
+    - name: Check for towncrier change file
+      if: github.ref_name != github.event.repository.default_branch
+      run: |
+        fragments=$(find changes -type f ! -name '.gitkeep')
+        if [ -z "$fragments" ]; then
+          echo "::error::No news fragments found. Add a towncrier change file (e.g. changes/<issue-number>.bugfix) before merging."
+          exit 1
+        fi
+        echo "Found change file(s):"
+        echo "$fragments"
 
   test:
     runs-on: ubuntu-latest
@@ -40,6 +48,8 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v3
     - name: Install uv
@@ -55,9 +65,75 @@ jobs:
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      if: ${{ github.event_name == 'push' && github.ref_name == github.event.repository.default_branch }}
       with:
         publish_branch: gh-pages
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: _build
         force_orphan: true
+
+  update-version:
+    runs-on: ubuntu-latest
+    # only runs after lint, test and docs have all succeeded
+    needs: [ lint, test, docs ]
+    if: github.ref_name == github.event.repository.default_branch
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install release tools
+        run: uv sync --all-extras
+
+      - name: Bump version and build changelog
+        run: |
+          # works for bugfix, chore and any others
+          SEGMENT=patch
+          ls changes/*.feature >/dev/null 2>&1 && SEGMENT=minor
+          ls changes/*.breaking >/dev/null 2>&1 && SEGMENT=major
+          uv run hatch version "$SEGMENT"
+          # set PKG_VERSION for this step ($GITHUB_ENV only affects later steps)
+          PKG_VERSION="$(uv run hatch version)"
+          echo "PKG_VERSION=$PKG_VERSION" >> $GITHUB_ENV
+          uv run towncrier build --yes --version $PKG_VERSION
+
+      - name: Pre-release check
+        run: |
+            # equivalent of: imsplone prerelease_check <package> <version>
+            if git rev-parse -q --verify "refs/tags/${PKG_VERSION}" >/dev/null; then
+              echo "::error::Tag already exists: ${PKG_VERSION}"
+              exit 1
+            fi
+            if curl -fsSL "https://pypi.org/pypi/${{ github.event.repository.name }}/${PKG_VERSION}/json" >/dev/null; then
+              echo "::error::Package already released: ${{ github.event.repository.name }} - ${PKG_VERSION}"
+              exit 1
+            fi
+
+      - name: Commit and tag release
+        run: |
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git add .
+          git commit -m "release for $PKG_VERSION [skip ci]"
+          git tag -a ${PKG_VERSION} -m "creating tag ${PKG_VERSION}"
+
+      - name: Push release commit and tag
+        run: |
+          git push --atomic --no-thin origin \
+            "HEAD:refs/heads/${{ github.ref_name }}" \
+            "refs/tags/$PKG_VERSION"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${PKG_VERSION}" \
+            --title "${PKG_VERSION}" \
+            --generate-notes
