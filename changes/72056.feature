@@ -1,0 +1,1 @@
+Use the full URL for IdP identification, not just domain
