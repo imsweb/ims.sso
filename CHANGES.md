@@ -1,3 +1,12 @@
+# ims.sso 1.1.6 (2026-11-24)
+
+## Other tasks
+
+- add towncrier to automatically update package version number ([72033])
+
+[72033]: https://squishlist.com/ims/plone/72033
+
+
 ## Bug fix
 
 - Add `_post_login` hook for REST API
