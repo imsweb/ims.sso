@@ -47,7 +47,7 @@ def sso(portal):
 
 @pytest.fixture
 def plugin(pas):
-    pas.source_users.addUser(test_user_id, test_login + "@foo.bar", "password")
+    pas.source_users.addUser(test_user_id, test_login + "@https://foo.bar", "password")
     return pas.ims_sso_plugin
 
 
@@ -128,14 +128,14 @@ class TestIdpLogin(BaseIdp):
 @pytest.fixture
 def fake_idp(portal) -> TestIdp:
     utility = TestIdp()
-    provideUtility(utility, provides=ISsoIdp, name="foo.bar")
+    provideUtility(utility, provides=ISsoIdp, name="https://foo.bar")
     return utility
 
 
 @pytest.fixture
 def fake_idp_login(portal) -> TestIdpLogin:
     utility = TestIdpLogin()
-    provideUtility(utility, provides=ISsoIdp, name="foologin.bar")
+    provideUtility(utility, provides=ISsoIdp, name="https://foologin.bar")
     return utility
 
 
@@ -147,5 +147,5 @@ class TestIdpNoUpdate(BaseIdp):
 @pytest.fixture
 def fake_idp_no_update(portal) -> TestIdpNoUpdate:
     utility = TestIdpNoUpdate()
-    provideUtility(utility, provides=ISsoIdp, name="foo.bar")
+    provideUtility(utility, provides=ISsoIdp, name="https://foo.bar")
     return utility

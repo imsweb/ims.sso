@@ -101,8 +101,8 @@ class UsersOverviewControlPanel(BaseUsersOverviewControlPanel):
             user_account = plone.api.user.get(userid=usr["id"])
             if not find_all and user_account.getProperty("active") not in active_status:
                 continue
-            idp, login = self.sso.get_idp_domain_from_login(user_account.getUserName())
-            usr["idp"] = self.sso.get_idp_from_domain(idp)
+            idp, login = self.sso.get_idp_url_from_login(user_account.getUserName())
+            usr["idp"] = self.sso.get_idp_from_url(idp)
             usr["login"] = None
             if idp in self.sso.idp_info and self.sso.idp_info[idp]["display_login"]:
                 usr["login"] = login

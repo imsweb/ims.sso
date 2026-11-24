@@ -58,7 +58,7 @@ class TestSsoLogin:
     def test_logout_url(self, http_request, sso, shib_header_user, shib_header_idp, fake_idp):
         api.portal.set_registry_record(name="generic_logout", interface=ISSOSettings, value=GENERIC_LOGOUT_URL)
         http_request.environ = {
-            shib_header_idp: "foo.bar",
+            shib_header_idp: "https://foo.bar",
             shib_header_user: "wohnlice",
         }
         logout = sso.get_url_logout(request=http_request)

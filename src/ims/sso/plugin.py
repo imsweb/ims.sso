@@ -1,5 +1,4 @@
 import logging
-from urllib.parse import urlparse
 
 import pytz
 from AccessControl.class_init import InitializeClass
@@ -89,8 +88,8 @@ class ImsSsoPlugin(BasePlugin):
                     return None
 
                 mtool.createMemberArea(member_id=user_id)
-                domain = urlparse(credentials["idp"]).netloc
-                if domain in self.sso.idp_info and self.sso.idp_info[domain]["update_email"]:
+                url = credentials["idp"]
+                if url in self.sso.idp_info and self.sso.idp_info[url]["update_email"]:
                     self.update_user(
                         username=user_id,
                         first_name=credentials.get("first_name"),

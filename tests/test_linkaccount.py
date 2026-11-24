@@ -71,7 +71,7 @@ class TestPlugins:
         reset = pwrt.requestReset(new_member_id)
         view = api.content.get_view("linkaccount", context=portal)
         view.request.environ = {
-            shib_header_idp: "https://adfs.omni.imsweb.com/loginfoobar",
+            shib_header_idp: "https://adfs.omni.imsweb.com/full_path",
             shib_header_email: "wohnliche@imsweb.com",
             shib_header_user: "wohnliche",
         }
@@ -79,7 +79,7 @@ class TestPlugins:
         view.publishTraverse(view.request, new_member_id)
         mock_mail.reset()
         view()
-        assert api.user.get(username=new_member_id).getUserName() == "wohnliche@adfs.omni.imsweb.com"
+        assert api.user.get(username=new_member_id).getUserName() == "wohnliche@https://adfs.omni.imsweb.com/full_path"
         msg = message_from_bytes(mock_mail.messages[-1])
 
         # relink email
@@ -99,12 +99,12 @@ class TestPlugins:
         new_member_id = "userX"
         api.user.create(email="noreply@imsweb.com", username=new_member_id)
         sso.initialize_login(new_member_id)
-        sso.set_login_name(new_member_id, "userx@foobar.com")  # start as linked
+        sso.set_login_name(new_member_id, "userx@https://foobar.com")  # start as linked
 
         reset = pwrt.requestReset(new_member_id)
         view = api.content.get_view("linkaccount", context=portal)
         view.request.environ = {
-            shib_header_idp: "https://adfs.omni.imsweb.com/loginfoobar",
+            shib_header_idp: "https://adfs.omni.imsweb.com/full_path",
             shib_header_email: "wohnliche@imsweb.com",
             shib_header_user: "wohnliche",
         }
@@ -112,7 +112,7 @@ class TestPlugins:
         view.publishTraverse(view.request, new_member_id)
         mock_mail.reset()
         view()
-        assert api.user.get(username=new_member_id).getUserName() == "wohnliche@adfs.omni.imsweb.com"
+        assert api.user.get(username=new_member_id).getUserName() == "wohnliche@https://adfs.omni.imsweb.com/full_path"
 
         msg = message_from_bytes(mock_mail.messages[-1])
         assert "user has updated their account" in get_decoded_subject(msg)
@@ -131,7 +131,7 @@ class TestPlugins:
         pwrt = api.portal.get_tool("portal_password_reset")
 
         api.user.create(email="noreply@imwweb.com", username="dup")
-        sso.set_login_name(user_id="dup", login_name="wohnliche@adfs.omni.imsweb.com")
+        sso.set_login_name(user_id="dup", login_name="wohnliche@https://adfs.omni.imsweb.com/full_path")
 
         new_member_id = "userX"
         api.user.create(email="noreply@imsweb.com", username=new_member_id)
@@ -140,7 +140,7 @@ class TestPlugins:
         reset = pwrt.requestReset(new_member_id)
         view = api.content.get_view("linkaccount", context=portal)
         view.request.environ = {
-            shib_header_idp: "https://adfs.omni.imsweb.com/loginfoobar",
+            shib_header_idp: "https://adfs.omni.imsweb.com/full_path",
             shib_header_email: "wohnliche@imsweb.com",
             shib_header_user: "wohnliche",
         }
@@ -148,7 +148,7 @@ class TestPlugins:
         view.publishTraverse(view.request, new_member_id)
         mock_mail.reset()
         view()
-        assert api.user.get(username=new_member_id).getUserName() != "wohnliche@adfs.omni.imsweb.com"
+        assert api.user.get(username=new_member_id).getUserName() != "wohnliche@https://adfs.omni.imsweb.com/full_path"
 
         assert not mock_mail.messages
 
@@ -162,7 +162,7 @@ class TestPlugins:
         reset = pwrt.requestReset(new_member_id)
         view = api.content.get_view("linkaccount", context=portal)
         view.request.environ = {
-            shib_header_idp: "https://adfs.omni.imsweb.com/loginfoobar",
+            shib_header_idp: "https://adfs.omni.imsweb.com/full_path",
             shib_header_user: "wohnliche",
         }
         view.publishTraverse(view.request, reset["randomstring"])
@@ -188,7 +188,7 @@ class TestPlugins:
         reset = pwrt.requestReset(new_member_id)
         view = api.content.get_view("linkaccount", context=portal)
         view.request.environ = {
-            shib_header_idp: "https://adfs.omni.imsweb.com/loginfoobar",
+            shib_header_idp: "https://adfs.omni.imsweb.com/full_path",
             shib_header_email: "wohnliche@imsweb.com",
             shib_header_user: "wohnliche",
         }
@@ -200,7 +200,7 @@ class TestPlugins:
         # and now fix it
         view.publishTraverse(view.request, new_member_id)
         view()
-        assert api.user.get(username=new_member_id).getUserName() == "wohnliche@adfs.omni.imsweb.com"
+        assert api.user.get(username=new_member_id).getUserName() == "wohnliche@https://adfs.omni.imsweb.com/full_path"
 
     def test_linkaccount_invalid_key(
         self,
@@ -220,7 +220,7 @@ class TestPlugins:
         reset = pwrt.requestReset(new_member_id)
         view = api.content.get_view("linkaccount", context=portal)
         shib_environ = {
-            shib_header_idp: "https://adfs.omni.imsweb.com/loginfoobar",
+            shib_header_idp: "https://adfs.omni.imsweb.com/full_path",
             shib_header_email: "wohnliche@imsweb.com",
             shib_header_user: "wohnliche",
         }
@@ -255,7 +255,7 @@ class TestPlugins:
         reset = pwrt.requestReset(new_member_id)
         view = api.content.get_view("linkaccount", context=portal)
         shib_environ = {
-            shib_header_idp: "https://adfs.omni.imsweb.com/loginfoobar",
+            shib_header_idp: "https://adfs.omni.imsweb.com/full_path",
             shib_header_email: "wohnliche@imsweb.com",
             shib_header_user: "wohnliche",
         }
@@ -277,7 +277,7 @@ class TestPlugins:
 
         existing_member_id = "existing"
         api.user.create(email="noreply@imsweb.com", username=existing_member_id)
-        sso.set_login_name(existing_member_id, "wohnliche@adfs.omni.imsweb.com")
+        sso.set_login_name(existing_member_id, "wohnliche@https://adfs.omni.imsweb.com/full_path")
 
         new_member_id = "userX"
         api.user.create(email="noreply@imsweb.com", username=new_member_id)
@@ -286,7 +286,7 @@ class TestPlugins:
         reset = pwrt.requestReset(new_member_id)
         view = api.content.get_view("linkaccount", context=portal)
         view.request.environ = {
-            shib_header_idp: "https://adfs.omni.imsweb.com/loginfoobar",
+            shib_header_idp: "https://adfs.omni.imsweb.com/full_path",
             shib_header_email: "wohnliche@imsweb.com",
             shib_header_user: "wohnliche",
         }
@@ -294,5 +294,5 @@ class TestPlugins:
         view.publishTraverse(view.request, new_member_id)
         view()
 
-        domain, _loginname = sso.get_idp_domain_from_login(api.user.get(userid=new_member_id).getUserName())
-        assert domain == "not.linked"
+        url, _loginname = sso.get_idp_url_from_login(api.user.get(userid=new_member_id).getUserName())
+        assert url == "not.linked"
