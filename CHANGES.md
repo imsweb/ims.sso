@@ -1,7 +1,3 @@
-# ims.sso 1.2.0 (2026-11-16)
-
-- Use the full URL for IdP identification, not just domain
-
 # ims.sso 1.1.5 (2026-11-10)
 
 ## Bug fix
