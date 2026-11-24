@@ -1,3 +1,12 @@
+# ims.sso 1.2.0 (2026-11-24)
+
+## Feature
+
+- Use the full URL for IdP identification, not just domain ([72056])
+
+[72056]: https://squishlist.com/ims/plone/72056
+
+
 # ims.sso 1.1.6 (2026-11-24)
 
 ## Other tasks
